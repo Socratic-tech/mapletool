@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | NWS Edition</title>
+    <title>SapMaster Pro | NWS-Native</title>
     <style>
         body { font-family: system-ui, sans-serif; background: #fcf8f2; color: #333; padding: 20px; max-width: 800px; margin: 0 auto; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #a0522d; }
-        h1 { color: #a0522d; text-align: center; }
+        h1 { color: #a0522d; text-align: center; margin-top:0; }
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
         input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
         button { padding: 12px 24px; background: #a0522d; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
@@ -16,11 +16,12 @@
         .stat label { display: block; font-size: 11px; font-weight: 800; color: #8b4513; text-transform: uppercase; }
         .stat span { font-size: 22px; font-weight: bold; }
         .forecast { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
-        .forecast th, .forecast td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
-        .debug { background: #333; color: #0f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-top: 20px; overflow-x: auto; display: none; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        .forecast th, .forecast td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
+        .debug { background: #333; color: #0f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-top: 20px; overflow-x: auto; display: none; border-left: 5px solid #555; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         .run { background: #e8f5e9; color: #2e7d32; }
         .risk { background: #ffebee; color: #c62828; }
+        .loader { text-align: center; padding: 20px; font-weight: bold; color: #a0522d; display: none; }
     </style>
 </head>
 <body>
@@ -32,11 +33,11 @@
         <button onclick="runAnalysis()">Run Analysis</button>
     </div>
 
-    <div id="loader" style="display:none; text-align:center; font-weight:bold; color:#a0522d;">🔄 Processing Weather Data...</div>
+    <div id="loader" class="loader">🔄 Pulling Government Weather Data...</div>
 
     <div id="dashboard" class="grid">
-        <div class="stat"><label>Approx Elevation</label><span id="val-elev">--</span></div>
-        <div class="stat"><label>Water Boils</label><span id="val-water">--</span></div>
+        <div class="stat"><label>Grid Elevation</label><span id="val-elev">--</span></div>
+        <div class="stat"><label>Water Boils At</label><span id="val-water">--</span></div>
         <div class="stat" style="border: 2px solid #d35400;"><label>Finish Syrup At</label><span id="val-syrup" style="color:#d35400;">--</span></div>
     </div>
 
@@ -55,6 +56,7 @@
         const d = document.getElementById('debugLog');
         d.style.display = 'block';
         d.innerHTML += `> ${msg}<br>`;
+        console.log(msg);
     };
 
     async function runAnalysis() {
@@ -69,7 +71,7 @@
         log("Step 1: Geocoding ZIP...");
 
         try {
-            // 1. Get Lat/Lon from Zippopotam (Reliable)
+            // 1. Get Lat/Lon from Zippopotam
             const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
             if (!zipRes.ok) throw new Error("ZIP Lookup Failed");
             const zipData = await zipRes.json();
@@ -77,31 +79,36 @@
             const lon = zipData.places[0].longitude;
             log(`Found: ${zipData.places[0]['place name']}, ${zipData.places[0]['state']}`);
 
-            // 2. Get NWS Grid Point & Elevation
-            log("Step 2: Accessing NWS Grid...");
-            // Use a specific User-Agent-like header (standard for NWS API)
+            // 2. Get NWS Points Metadata
+            log("Step 2: Connecting to NWS Grid...");
             const nwsPointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-            if (!nwsPointsRes.ok) throw new Error("NWS Grid Error (US Only API)");
+            if (!nwsPointsRes.ok) throw new Error("NWS Grid Search Error");
             const pointsData = await nwsPointsRes.json();
             
-            // 3. Get Forecast from NWS
-            log("Step 3: Fetching NWS Daily Forecast...");
-            const forecastUrl = pointsData.properties.forecast;
-            const forecastRes = await fetch(forecastUrl);
-            if (!forecastRes.ok) throw new Error("NWS Forecast Blocked");
+            // 3. Get Grid Data (THIS CONTAINS ELEVATION)
+            log("Step 3: Accessing Elevation Data...");
+            const gridUrl = pointsData.properties.forecastGridData;
+            const gridRes = await fetch(gridUrl);
+            if (!gridRes.ok) throw new Error("Elevation Access Blocked");
+            const gridData = await gridRes.json();
+
+            // Extract Elevation in Meters and convert to Feet
+            const elevMeters = gridData.properties.elevation.value;
+            const elevFt = elevMeters * 3.28084;
+            log(`Elevation acquired: ${Math.round(elevFt)}ft`);
+
+            // 4. Get Forecast
+            log("Step 4: Fetching Forecast Cycles...");
+            const forecastRes = await fetch(pointsData.properties.forecast);
+            if (!forecastRes.ok) throw new Error("Forecast Access Blocked");
             const forecastData = await forecastRes.json();
 
-            // 4. Manual Elevation fetch from Open-Meteo (Just for the number)
-            log("Step 4: Fetching Elevation physics...");
-            const elevRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&elevation=true&current_weather=true`);
-            const elevData = await elevRes.json();
-            const elevFt = elevData.elevation * 3.28084;
-
             // 5. Calculations
+            // Formula: Water Boiling Pt = 212 - (Elev / 500)
             const waterBoil = 212 - (elevFt / 500);
             const syrupFinish = waterBoil + 7.1;
 
-            // UI Updates
+            // Update UI
             document.getElementById('val-elev').innerText = Math.round(elevFt) + " ft";
             document.getElementById('val-water').innerText = waterBoil.toFixed(1) + "°F";
             document.getElementById('val-syrup').innerText = syrupFinish.toFixed(1) + "°F";
@@ -109,11 +116,10 @@
             const tbody = document.getElementById('forecastBody');
             tbody.innerHTML = '';
             
-            // NWS gives detailed periods, we want to group by 24h
             const periods = forecastData.properties.periods;
             for (let i = 0; i < periods.length; i += 2) {
-                const day = periods[i]; // Usually Day
-                const night = periods[i+1]; // Usually Night
+                const day = periods[i]; 
+                const night = periods[i+1]; 
                 if (!night) break;
 
                 const isRun = (night.temperature < 32 && day.temperature > 34);
@@ -123,7 +129,7 @@
                     <tr>
                         <td>${day.name}</td>
                         <td>${night.temperature}° / ${day.temperature}°</td>
-                        <td>${isRun ? '<span class="badge run">RUN</span>' : '--'}</td>
+                        <td>${isRun ? '<span class="badge run">RUNNING</span>' : '--'}</td>
                         <td>${isRisk ? '<span class="badge risk">BOIL NOW</span>' : '✅ SAFE'}</td>
                     </tr>`;
             }
@@ -136,6 +142,7 @@
         } catch (err) {
             log(`FATAL ERROR: ${err.message}`);
             loader.style.display = 'none';
+            alert("Error: " + err.message);
         }
     }
 </script>
