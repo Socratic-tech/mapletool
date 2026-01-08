@@ -3,45 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | Hardened Version</title>
+    <title>SapMaster Pro | Final Edition</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #fcf8f2; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #a0522d; }
+        body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #fcf8f2; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid #a0522d; }
         h1 { color: #a0522d; text-align: center; margin-bottom: 5px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-style: italic; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+        
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; background: #fdf5e6; padding: 20px; border-radius: 8px; border: 1px solid #e9dcc9; }
         input { padding: 12px; border: 2px solid #ddd; border-radius: 6px; width: 140px; font-size: 16px; text-align: center; }
         button { background: #a0522d; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 25px; display: none; }
-        .stat-box { background: #fdf5e6; padding: 15px; border-radius: 8px; border: 1px solid #e9dcc9; text-align: center; }
-        .stat-box h3 { margin: 0; font-size: 12px; text-transform: uppercase; color: #8b4513; }
-        .stat-box p { font-size: 22px; font-weight: bold; margin: 5px 0; }
-        .forecast-table { width: 100%; margin-top: 30px; border-collapse: collapse; display: none; }
-        .forecast-table th, .forecast-table td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
+        button:hover { background: #8b4513; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 25px; display: none; }
+        .stat-box { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e9dcc9; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stat-box h3 { margin: 0; font-size: 11px; text-transform: uppercase; color: #8b4513; letter-spacing: 1px; }
+        .stat-box p { font-size: 20px; font-weight: bold; margin: 5px 0; color: #333; }
+        
+        .forecast-table { width: 100%; margin-top: 30px; border-collapse: collapse; display: none; background: white; border-radius: 8px; overflow: hidden; }
+        .forecast-table th { background: #a0522d; color: white; padding: 12px; font-size: 13px; }
+        .forecast-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
+        
+        .yield-box { margin-top: 30px; padding: 20px; background: #e8f5e9; border-radius: 8px; border: 1px solid #c8e6c9; display: none; }
         .run-yes { color: #2e7d32; font-weight: bold; }
-        .risk-high { background-color: #ffebee; color: #c62828; font-weight: bold; padding: 4px; border-radius: 4px; }
-        .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 6px; margin: 10px 0; display: none; text-align: center; border: 1px solid #d32f2f; }
-        .loading { text-align: center; display: none; margin: 20px 0; color: #a0522d; font-weight: bold; }
+        .risk-high { color: #c62828; font-weight: bold; background: #ffebee; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffcdd2; }
+        
+        .loading { text-align: center; display: none; margin: 20px 0; color: #a0522d; font-weight: bold; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .error-msg { color: #d32f2f; background: #ffebee; padding: 15px; border-radius: 6px; margin: 10px 0; display: none; border: 1px solid #d32f2f; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>🍁 SapMaster Pro</h1>
-    <p class="subtitle">Precision Boiling & Sap Safety</p>
+    <p class="subtitle">Weather, Boiling, and Yield Intelligence</p>
     
     <div class="input-group">
-        <input type="text" id="zipInput" placeholder="Enter ZIP" maxlength="5">
-        <button onclick="processSapData()">Check Weather</button>
+        <div>
+            <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:5px;">ZIP CODE</label>
+            <input type="text" id="zipInput" placeholder="12345" maxlength="5">
+        </div>
+        <div style="align-self: flex-end;">
+            <button onclick="calculateEverything()">Analyze Sugarbush</button>
+        </div>
     </div>
 
     <div id="errorMessage" class="error-msg"></div>
-    <div id="loading" class="loading">⏳ Connecting to Weather APIs...</div>
+    <div id="loading" class="loading">📡 Gathering atmospheric data...</div>
 
     <div id="results" class="result-grid">
         <div class="stat-box"><h3>Elevation</h3><p id="elevText">--</p></div>
         <div class="stat-box"><h3>Water Boils</h3><p id="waterBoil">--</p></div>
-        <div class="stat-box" style="background:#fff3e0; border:2px solid #d35400;"><h3>Finish Syrup</h3><p id="syrupFinish" style="color:#d35400;">--</p></div>
+        <div class="stat-box" style="border: 2px solid #d35400;"><h3>Finish Syrup</h3><p id="syrupFinish" style="color: #d35400;">--</p></div>
+    </div>
+
+    <div id="yieldCalc" class="yield-box">
+        <h3 style="margin-top:0; color: #2e7d32;">🍯 Yield Calculator (Rule of 86)</h3>
+        <p style="font-size:14px;">If you collect <input type="number" id="sapGallons" value="10" style="width:60px; padding:5px;" oninput="updateYield()"> gallons of sap at 2% sugar...</p>
+        <p style="font-weight:bold; font-size:18px;">You will get approximately <span id="syrupResult" style="color:#a0522d;">0.23</span> gallons of syrup.</p>
     </div>
 
     <table id="forecast" class="forecast-table">
@@ -58,73 +78,86 @@
 </div>
 
 <script>
-    const errorDiv = document.getElementById('errorMessage');
-    const loadingDiv = document.getElementById('loading');
-
-    function showError(msg) {
-        loadingDiv.style.display = 'none';
-        errorDiv.innerText = msg;
-        errorDiv.style.display = 'block';
-    }
-
-    async function processSapData() {
+    async function calculateEverything() {
         const zip = document.getElementById('zipInput').value;
-        errorDiv.style.display = 'none';
+        const errDiv = document.getElementById('errorMessage');
+        const loadDiv = document.getElementById('loading');
         
+        errDiv.style.display = 'none';
         if (!/^\d{5}$/.test(zip)) {
-            showError("Please enter a valid 5-digit ZIP code.");
+            errDiv.innerText = "Error: Please enter a 5-digit ZIP code.";
+            errDiv.style.display = 'block';
             return;
         }
 
-        loadingDiv.style.display = 'block';
+        loadDiv.style.display = 'block';
 
         try {
-            // 1. Get Lat/Lon from ZIP
-            const zipResponse = await fetch(`https://api.zippopotam.us/us/${zip}`);
-            if (!zipResponse.ok) throw new Error("ZIP code not found. Please try another.");
-            const zipData = await zipResponse.json();
+            // 1. Get Lat/Lon
+            const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+            if (!zipRes.ok) throw new Error("Could not find that ZIP code.");
+            const zipData = await zipRes.json();
             const lat = zipData.places[0].latitude;
             const lon = zipData.places[0].longitude;
 
-            // 2. Get Weather and Elevation
-            // Updated to use the newer Open-Meteo current parameter
+            // 2. Get Weather (Using a simplified URL for better compatibility)
             const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&elevation=true&timezone=auto&temperature_unit=fahrenheit`;
-            
             const weatherRes = await fetch(weatherUrl);
-            if (!weatherRes.ok) throw new Error("Weather service is busy. Please wait 10 seconds and try again.");
-            
+            if (!weatherRes.ok) throw new Error("Weather API blocked or unavailable.");
             const data = await weatherRes.json();
 
-            // 3. Calculations
+            // 3. Boiling Logic
             const elevFt = data.elevation * 3.28084;
             const waterBoil = 212 - (elevFt / 500);
             const syrupFinish = waterBoil + 7.1;
 
-            // 4. Update UI
-            document.getElementById('elevText').innerText = `${Math.round(elevFt)} ft`;
-            document.getElementById('waterBoil').innerText = `${waterBoil.toFixed(1)}°F`;
-            document.getElementById('syrupFinish').innerText = `${syrupFinish.toFixed(1)}°F`;
+            document.getElementById('elevText').innerText = Math.round(elevFt) + " ft";
+            document.getElementById('waterBoil').innerText = waterBoil.toFixed(1) + "°F";
+            document.getElementById('syrupFinish').innerText = syrupFinish.toFixed(1) + "°F";
 
-            const forecastBody = document.getElementById('forecastBody');
-            forecastBody.innerHTML = '';
+            // 4. Forecast Logic
+            const tbody = document.getElementById('forecastBody');
+            tbody.innerHTML = '';
             for (let i = 0; i < 7; i++) {
-                const date = new Date(data.daily.time[i] + 'T00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
                 const low = data.daily.temperature_2m_min[i];
                 const high = data.daily.temperature_2m_max[i];
-                
                 const isRun = (low < 32 && high > 34);
-                let risk = (high > 45 || low > 38) ? '<span class="risk-high">⚠️ HIGH RISK</span>' : 'Safe';
+                const isRisk = (high > 45 || low > 38);
+                
+                const dateObj = new Date(data.daily.time[i] + 'T00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
 
-                forecastBody.innerHTML += `<tr><td>${date}</td><td>${low}°/ ${high}°</td><td>${isRun ? '<span class="run-yes">Run</span>' : '--'}</td><td>${risk}</td></tr>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>${low}° / ${high}°</td>
+                        <td class="${isRun ? 'run-yes' : ''}">${isRun ? '✅ Good Flow' : '--'}</td>
+                        <td>${isRisk ? '<span class="risk-high">⚠️ HIGH RISK</span>' : '✅ Safe'}</td>
+                    </tr>
+                `;
             }
 
-            loadingDiv.style.display = 'none';
+            // Show UI
+            loadDiv.style.display = 'none';
             document.getElementById('results').style.display = 'grid';
             document.getElementById('forecast').style.display = 'table';
+            document.getElementById('yieldCalc').style.display = 'block';
+            updateYield();
 
         } catch (err) {
-            showError("Connection Error: " + err.message);
+            loadDiv.style.display = 'none';
+            errDiv.innerHTML = `<strong>Connection Error:</strong> ${err.message}<br><small>If you are using an ad-blocker, try disabling it for this page.</small>`;
+            errDiv.style.display = 'block';
         }
+    }
+
+    function updateYield() {
+        const sapGallons = document.getElementById('sapGallons').value;
+        // The "Rule of 86": 86 / Sap Sugar Content = Gallons of Sap for 1 Gallon of Syrup
+        // We assume 2% average sugar content for this calculator.
+        const ratio = 86 / 2; 
+        const yield = sapGallons / ratio;
+        document.getElementById('syrupResult').innerText = yield.toFixed(2);
     }
 </script>
 </body>
