@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | NWS-Native</title>
+    <title>SapMaster Pro | Trivia Edition</title>
     <style>
         body { font-family: system-ui, sans-serif; background: #fcf8f2; color: #333; padding: 20px; max-width: 800px; margin: 0 auto; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #a0522d; }
         h1 { color: #a0522d; text-align: center; margin-top:0; }
+        .trivia-box { background: #fff3e0; border-left: 5px solid #d35400; padding: 15px; margin-bottom: 20px; font-style: italic; font-size: 14px; color: #5d4037; }
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
         input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
         button { padding: 12px 24px; background: #a0522d; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
@@ -17,23 +18,23 @@
         .stat span { font-size: 22px; font-weight: bold; }
         .forecast { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
         .forecast th, .forecast td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
-        .debug { background: #333; color: #0f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; margin-top: 20px; overflow-x: auto; display: none; border-left: 5px solid #555; }
         .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
         .run { background: #e8f5e9; color: #2e7d32; }
         .risk { background: #ffebee; color: #c62828; }
-        .loader { text-align: center; padding: 20px; font-weight: bold; color: #a0522d; display: none; }
+        .debug { background: #333; color: #0f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 11px; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>🍁 SapMaster Pro</h1>
+    
+    <div id="trivia" class="trivia-box">Loading maple trivia...</div>
+
     <div class="input-group">
         <input type="text" id="zipInput" placeholder="Enter US ZIP Code" maxlength="5">
-        <button onclick="runAnalysis()">Run Analysis</button>
+        <button onclick="runAnalysis()">Analyze</button>
     </div>
-
-    <div id="loader" class="loader">🔄 Pulling Government Weather Data...</div>
 
     <div id="dashboard" class="grid">
         <div class="stat"><label>Grid Elevation</label><span id="val-elev">--</span></div>
@@ -43,7 +44,7 @@
 
     <table id="forecastTable" class="forecast">
         <thead>
-            <tr><th>Day</th><th>Temp Range</th><th>Sap Flow</th><th>Safety</th></tr>
+            <tr><th>Day</th><th>High / Low</th><th>Sap Flow</th><th>Safety</th></tr>
         </thead>
         <tbody id="forecastBody"></tbody>
     </table>
@@ -52,83 +53,77 @@
 </div>
 
 <script>
-    const log = (msg) => {
-        const d = document.getElementById('debugLog');
-        d.style.display = 'block';
-        d.innerHTML += `> ${msg}<br>`;
-        console.log(msg);
+    const facts = [
+        "It takes approximately 40 gallons of sap to make just 1 gallon of finished maple syrup.",
+        "A maple tree needs to be about 40 years old and 10-12 inches in diameter before it can be tapped.",
+        "Maple syrup contains more calcium than an equivalent amount of milk and more potassium than a banana.",
+        "Native Americans were the first to discover the 'sweet water' of the maple tree.",
+        "A single tap can yield 5 to 15 gallons of sap per season without harming the tree.",
+        "Sugar Maples are preferred because their sap has the highest sugar content (usually 2%).",
+        "Quebec, Canada produces over 70% of the entire world's maple syrup supply.",
+        "Light colored syrup (Grade A: Golden) is usually made earlier in the season when it is colder."
+    ];
+
+    // Load trivia on start
+    window.onload = () => {
+        const randomFact = facts[Math.floor(Math.random() * facts.length)];
+        document.getElementById('trivia').innerText = "Did you know? " + randomFact;
     };
 
     async function runAnalysis() {
         const zip = document.getElementById('zipInput').value;
-        const loader = document.getElementById('loader');
         const debug = document.getElementById('debugLog');
         debug.innerHTML = '';
         
         if (!/^\d{5}$/.test(zip)) return alert("Please enter a valid 5-digit ZIP.");
 
-        loader.style.display = 'block';
-        log("Step 1: Geocoding ZIP...");
-
         try {
-            // 1. Get Lat/Lon from Zippopotam
+            // 1. ZIP to Lat/Lon
             const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
-            if (!zipRes.ok) throw new Error("ZIP Lookup Failed");
             const zipData = await zipRes.json();
             const lat = zipData.places[0].latitude;
             const lon = zipData.places[0].longitude;
-            log(`Found: ${zipData.places[0]['place name']}, ${zipData.places[0]['state']}`);
 
-            // 2. Get NWS Points Metadata
-            log("Step 2: Connecting to NWS Grid...");
+            // 2. Get NWS Metadata
             const nwsPointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-            if (!nwsPointsRes.ok) throw new Error("NWS Grid Search Error");
             const pointsData = await nwsPointsRes.json();
             
-            // 3. Get Grid Data (THIS CONTAINS ELEVATION)
-            log("Step 3: Accessing Elevation Data...");
-            const gridUrl = pointsData.properties.forecastGridData;
-            const gridRes = await fetch(gridUrl);
-            if (!gridRes.ok) throw new Error("Elevation Access Blocked");
+            // 3. Get Elevation from Grid
+            const gridRes = await fetch(pointsData.properties.forecastGridData);
             const gridData = await gridRes.json();
-
-            // Extract Elevation in Meters and convert to Feet
-            const elevMeters = gridData.properties.elevation.value;
-            const elevFt = elevMeters * 3.28084;
-            log(`Elevation acquired: ${Math.round(elevFt)}ft`);
+            const elevFt = gridData.properties.elevation.value * 3.28084;
 
             // 4. Get Forecast
-            log("Step 4: Fetching Forecast Cycles...");
             const forecastRes = await fetch(pointsData.properties.forecast);
-            if (!forecastRes.ok) throw new Error("Forecast Access Blocked");
             const forecastData = await forecastRes.json();
 
             // 5. Calculations
-            // Formula: Water Boiling Pt = 212 - (Elev / 500)
             const waterBoil = 212 - (elevFt / 500);
             const syrupFinish = waterBoil + 7.1;
 
-            // Update UI
+            // Update Stats
             document.getElementById('val-elev').innerText = Math.round(elevFt) + " ft";
             document.getElementById('val-water').innerText = waterBoil.toFixed(1) + "°F";
             document.getElementById('val-syrup').innerText = syrupFinish.toFixed(1) + "°F";
 
+            // Update Forecast (Flipped Temp)
             const tbody = document.getElementById('forecastBody');
             tbody.innerHTML = '';
-            
             const periods = forecastData.properties.periods;
+            
             for (let i = 0; i < periods.length; i += 2) {
                 const day = periods[i]; 
                 const night = periods[i+1]; 
                 if (!night) break;
 
+                // Physics check for flow and safety
                 const isRun = (night.temperature < 32 && day.temperature > 34);
                 const isRisk = (day.temperature > 45 || night.temperature > 38);
 
                 tbody.innerHTML += `
                     <tr>
                         <td>${day.name}</td>
-                        <td>${night.temperature}° / ${day.temperature}°</td>
+                        <td><strong>${day.temperature}°</strong> / ${night.temperature}°</td>
                         <td>${isRun ? '<span class="badge run">RUNNING</span>' : '--'}</td>
                         <td>${isRisk ? '<span class="badge risk">BOIL NOW</span>' : '✅ SAFE'}</td>
                     </tr>`;
@@ -136,13 +131,9 @@
 
             document.getElementById('dashboard').style.display = 'grid';
             document.getElementById('forecastTable').style.display = 'table';
-            loader.style.display = 'none';
-            log("Analysis Complete.");
 
         } catch (err) {
-            log(`FATAL ERROR: ${err.message}`);
-            loader.style.display = 'none';
-            alert("Error: " + err.message);
+            alert("Analysis failed. Check your internet connection or ZIP code.");
         }
     }
 </script>
