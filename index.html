@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+    // Redirect to mobile.html if screen is narrow or device is mobile
+    if (window.innerWidth <= 800 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        // Only redirect if we aren't already on the mobile page to avoid loops
+        if (!window.location.pathname.includes('mobile.html')) {
+            window.location.href = 'mobile.html';
+        }
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | Trivia Edition</title>
+    <title>Sugarbush Signals | Trivia Edition</title>
     <style>
         body { font-family: system-ui, sans-serif; background: #fcf8f2; color: #333; padding: 20px; max-width: 800px; margin: 0 auto; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #a0522d; }
