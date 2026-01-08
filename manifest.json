@@ -1,0 +1,15 @@
+{
+  "short_name": "Sugarbush",
+  "name": "Sugarbush Signal",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#5d4037",
+  "background_color": "#fcf8f2"
+}
