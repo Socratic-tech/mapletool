@@ -1,134 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-    // Redirect to mobile.html if screen is narrow or device is mobile
-    if (window.innerWidth <= 800 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        // Only redirect if we aren't already on the mobile page to avoid loops
-        if (!window.location.pathname.includes('mobile.html')) {
-            window.location.href = 'mobile.html';
-        }
-    }
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sugarbush Signals | Trivia Edition</title>
+    <title>Sugarbush Signal | Precision Sugaring Intelligence</title>
+
+    <script>
+        (function() {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isNarrow = window.innerWidth <= 800;
+            const isAppMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            if (isMobile || isNarrow || isAppMode) {
+                if (!window.location.pathname.includes('mobile.html')) {
+                    window.location.href = 'mobile.html';
+                }
+            }
+        })();
+    </script>
+
     <style>
-        body { font-family: system-ui, sans-serif; background: #fcf8f2; color: #333; padding: 20px; max-width: 800px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #a0522d; }
-        h1 { color: #a0522d; text-align: center; margin-top:0; }
-        .trivia-box { background: #fff3e0; border-left: 5px solid #d35400; padding: 15px; margin-bottom: 20px; font-style: italic; font-size: 14px; color: #5d4037; }
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
-        button { padding: 12px 24px; background: #a0522d; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; display: none; }
-        .stat { background: #fdf5e6; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e9dcc9; }
-        .stat label { display: block; font-size: 11px; font-weight: 800; color: #8b4513; text-transform: uppercase; }
-        .stat span { font-size: 22px; font-weight: bold; }
-        .forecast { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
-        .forecast th, .forecast td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        :root { --primary: #5d4037; --accent: #8d6e63; --bg: #fcf8f2; --card: #ffffff; --text: #3e2723; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 40px 20px; max-width: 1000px; margin: 0 auto; line-height: 1.5; }
+        .card { background: var(--card); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(62, 39, 35, 0.1); border-top: 10px solid var(--primary); }
+        
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 2.5rem; color: var(--primary); margin: 0; letter-spacing: -1px; }
+        .subtitle { font-weight: 800; font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; }
+
+        .trivia-box { background: #efebe9; border-left: 5px solid var(--accent); padding: 20px; margin-bottom: 30px; font-style: italic; border-radius: 4px; color: #4e342e; }
+
+        .input-area { display: flex; gap: 15px; margin-bottom: 40px; justify-content: center; }
+        input { padding: 15px; border: 2px solid #d7ccc8; border-radius: 10px; width: 300px; font-size: 1.1rem; outline-color: var(--primary); }
+        button { padding: 15px 40px; background: var(--primary); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.1s; font-size: 1.1rem; }
+        button:active { transform: scale(0.98); }
+
+        /* GDD Progress Bar */
+        #gddWrapper { margin-bottom: 30px; display: none; background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #efebe9; }
+        .gdd-container { background: #e0e0e0; border-radius: 20px; height: 24px; position: relative; overflow: hidden; margin: 10px 0; }
+        .gdd-bar { background: linear-gradient(90deg, #81c784, #fff176, #e57373); height: 100%; width: 0%; transition: width 2s ease-in-out; }
+        .gdd-label { position: absolute; width: 100%; text-align: center; font-size: 12px; font-weight: bold; line-height: 24px; color: #333; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; display: none; }
+        .stat { background: #fff; padding: 25px; border-radius: 12px; text-align: center; border: 1px solid #d7ccc8; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .stat label { display: block; font-size: 11px; font-weight: 900; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; }
+        .stat span { font-size: 28px; font-weight: 900; color: var(--primary); }
+
+        table { width: 100%; border-collapse: collapse; display: none; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        th { background: #f5f5f5; padding: 15px; font-size: 12px; text-transform: uppercase; color: var(--accent); }
+        td { padding: 15px; text-align: center; border-bottom: 1px solid #efebe9; }
+        .badge { padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 11px; }
         .run { background: #e8f5e9; color: #2e7d32; }
         .risk { background: #ffebee; color: #c62828; }
-        .debug { background: #333; color: #0f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 11px; margin-top: 20px; display: none; }
+        
+        .loader { text-align: center; display: none; font-weight: bold; color: var(--primary); padding: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>🍁 SapMaster Pro</h1>
-    
-    <div id="trivia" class="trivia-box">Loading maple trivia...</div>
+    <header>
+        <h1>Sugarbush Signal</h1>
+        <div class="subtitle">Precision Boiling & Seasonal Intelligence</div>
+    </header>
 
-    <div class="input-group">
-        <input type="text" id="zipInput" placeholder="Enter US ZIP Code" maxlength="5">
-        <button onclick="runAnalysis()">Analyze</button>
+    <div id="trivia" class="trivia-box">Stoking the evaporator...</div>
+
+    <div class="input-area">
+        <input type="text" id="zipInput" placeholder="Enter Zip Code" maxlength="5">
+        <button onclick="runAnalysis()">Analyze Bush</button>
+    </div>
+
+    <div id="loader" class="loader">📡 Syncing with Weather Grid...</div>
+
+    <div id="gddWrapper">
+        <label style="font-size: 12px; font-weight: 800; color: var(--primary);">SEASON VITALITY (CUMULATIVE GDD BASE 40)</label>
+        <div class="gdd-container">
+            <div id="gddBar" class="gdd-bar"></div>
+            <div id="gddLabel" class="gdd-label">0 GDD Accumulated</div>
+        </div>
+        <div id="seasonAdvice" style="font-size: 14px; margin-top: 10px; font-weight: 500;"></div>
     </div>
 
     <div id="dashboard" class="grid">
         <div class="stat"><label>Grid Elevation</label><span id="val-elev">--</span></div>
-        <div class="stat"><label>Water Boils At</label><span id="val-water">--</span></div>
-        <div class="stat" style="border: 2px solid #d35400;"><label>Finish Syrup At</label><span id="val-syrup" style="color:#d35400;">--</span></div>
+        <div class="stat"><label>Water Boiling Point</label><span id="val-water">--</span></div>
+        <div class="stat" style="border: 2px solid var(--primary);"><label>Finish Syrup At</label><span id="val-syrup">--</span></div>
     </div>
 
-    <table id="forecastTable" class="forecast">
+    <table id="forecastTable">
         <thead>
-            <tr><th>Day</th><th>High / Low</th><th>Sap Flow</th><th>Safety</th></tr>
+            <tr><th>Day</th><th>High / Low</th><th>Sap Flow Potential</th><th>Safety Warning</th></tr>
         </thead>
         <tbody id="forecastBody"></tbody>
     </table>
-
-    <div id="debugLog" class="debug"></div>
 </div>
 
 <script>
     const facts = [
-        "It takes approximately 40 gallons of sap to make just 1 gallon of finished maple syrup.",
-        "A maple tree needs to be about 40 years old and 10-12 inches in diameter before it can be tapped.",
-        "Maple syrup contains more calcium than an equivalent amount of milk and more potassium than a banana.",
-        "Native Americans were the first to discover the 'sweet water' of the maple tree.",
-        "A single tap can yield 5 to 15 gallons of sap per season without harming the tree.",
-        "Sugar Maples are preferred because their sap has the highest sugar content (usually 2%).",
-        "Quebec, Canada produces over 70% of the entire world's maple syrup supply.",
-        "Light colored syrup (Grade A: Golden) is usually made earlier in the season when it is colder."
+        "It takes roughly 40 gallons of sap to produce 1 gallon of syrup.",
+        "A night below freezing followed by a day above 40°F is the ideal sap run weather.",
+        "Maple sap is typically 2% sugar; syrup must be 66% sugar.",
+        "The sugar in maple sap is created by the tree the previous summer during photosynthesis.",
+        "Once buds begin to swell, the sap chemistry changes, creating a 'buddy' off-flavor.",
+        "The boiling point of water drops about 1 degree for every 500 feet of elevation."
     ];
 
-    // Load trivia on start
     window.onload = () => {
-        const randomFact = facts[Math.floor(Math.random() * facts.length)];
-        document.getElementById('trivia').innerText = "Did you know? " + randomFact;
+        document.getElementById('trivia').innerText = "Sugarbush Trivia: " + facts[Math.floor(Math.random() * facts.length)];
     };
 
     async function runAnalysis() {
         const zip = document.getElementById('zipInput').value;
-        const debug = document.getElementById('debugLog');
-        debug.innerHTML = '';
-        
         if (!/^\d{5}$/.test(zip)) return alert("Please enter a valid 5-digit ZIP.");
 
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+
         try {
-            // 1. ZIP to Lat/Lon
+            // 1. Get Lat/Lon
             const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
             const zipData = await zipRes.json();
             const lat = zipData.places[0].latitude;
             const lon = zipData.places[0].longitude;
 
-            // 2. Get NWS Metadata
-            const nwsPointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-            const pointsData = await nwsPointsRes.json();
+            // 2. Get NWS Grid Data (Elevation & Forecast)
+            const pointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+            const pointsData = await pointsRes.json();
             
-            // 3. Get Elevation from Grid
             const gridRes = await fetch(pointsData.properties.forecastGridData);
             const gridData = await gridRes.json();
             const elevFt = gridData.properties.elevation.value * 3.28084;
 
-            // 4. Get Forecast
             const forecastRes = await fetch(pointsData.properties.forecast);
             const forecastData = await forecastRes.json();
 
-            // 5. Calculations
+            // 3. Historical GDD Fetch (Jan 1 to Today)
+            try {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 1);
+                const diffDays = Math.ceil((now - start) / (1000 * 60 * 60 * 24));
+                const gddUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`;
+                const gddRes = await fetch(gddUrl);
+                const gddData = await gddRes.json();
+
+                let totalGDD = 0;
+                for (let i = 0; i < gddData.daily.time.length; i++) {
+                    const h = gddData.daily.temperature_2m_max[i];
+                    const l = gddData.daily.temperature_2m_min[i];
+                    if (h !== null && l !== null) {
+                        totalGDD += Math.max(((h + l) / 2) - 40, 0);
+                    }
+                }
+
+                document.getElementById('gddWrapper').style.display = 'block';
+                const percent = Math.min((totalGDD / 150) * 100, 100);
+                document.getElementById('gddBar').style.width = percent + "%";
+                document.getElementById('gddLabel').innerText = Math.round(totalGDD) + " GDD Units";
+                
+                let advice = "🌳 Buds are dormant. Sap quality is prime.";
+                if (totalGDD > 75) advice = "🟡 Trees are waking up. Monitor bud swell closely.";
+                if (totalGDD > 125) advice = "🚨 ALERT: Buds swelling. Season end is imminent!";
+                document.getElementById('seasonAdvice').innerText = advice;
+            } catch (e) { console.warn("GDD Data unavailable."); }
+
+            // 4. Update UI
             const waterBoil = 212 - (elevFt / 500);
             const syrupFinish = waterBoil + 7.1;
 
-            // Update Stats
             document.getElementById('val-elev').innerText = Math.round(elevFt) + " ft";
             document.getElementById('val-water').innerText = waterBoil.toFixed(1) + "°F";
             document.getElementById('val-syrup').innerText = syrupFinish.toFixed(1) + "°F";
 
-            // Update Forecast (Flipped Temp)
             const tbody = document.getElementById('forecastBody');
             tbody.innerHTML = '';
             const periods = forecastData.properties.periods;
-            
             for (let i = 0; i < periods.length; i += 2) {
-                const day = periods[i]; 
-                const night = periods[i+1]; 
+                const day = periods[i]; const night = periods[i+1];
                 if (!night) break;
-
-                // Physics check for flow and safety
                 const isRun = (night.temperature < 32 && day.temperature > 34);
                 const isRisk = (day.temperature > 45 || night.temperature > 38);
-
                 tbody.innerHTML += `
                     <tr>
                         <td>${day.name}</td>
@@ -140,9 +191,11 @@
 
             document.getElementById('dashboard').style.display = 'grid';
             document.getElementById('forecastTable').style.display = 'table';
+            loader.style.display = 'none';
 
         } catch (err) {
-            alert("Analysis failed. Check your internet connection or ZIP code.");
+            loader.style.display = 'none';
+            alert("Error connecting to weather services. Please try again.");
         }
     }
 </script>
