@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Sugarbush Signal | Mobile</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sugarbush Signal | Mobile Pro</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="maple.png">
+    <meta name="apple-mobile-web-app-title" content="Sugarbush">
+    <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
-    </head>
+    <link rel="manifest" href="manifest.json">
 
-<link rel="apple-touch-icon" href="maple.png">
-<link rel="icon" type="image/png" href="maple.png">
-
-<link rel="manifest" href="manifest.json">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sugarbush Signal | Mobile</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
-        body { background-color: #fcf8f2; }
+        body { background-color: #fcf8f2; -webkit-tap-highlight-color: transparent; }
         .maple-gradient { background: linear-gradient(90deg, #81c784, #fff176, #e57373); }
-        .tap-button { background-color: #5d4037; }
-        .tap-button:active { transform: scale(0.95); }
+        .tap-active:active { transform: scale(0.96); transition: transform 0.1s; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
@@ -33,14 +30,49 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const facts = [
-            "A standard tap hole is only about 1.5 to 2 inches deep.",
-            "Freezing nights create negative pressure, sucking water into the roots.",
-            "Thawing days create positive pressure, pushing sap out of the tap.",
-            "Sugar concentration is usually highest at the very beginning of the season.",
-            "Birch trees can also be tapped, but their ratio is often 100:1 for syrup.",
-            "Maples are 'diffuse-porous' trees, which is why they respond so well to pressure."
+        const triviaList = [
+            "It takes roughly 40 gallons of sap to make 1 gallon of syrup.",
+            "Maple hydrometers are usually calibrated at 60°F or 211°F.",
+            "Sap pressure is highest during the thaw after a hard freeze.",
+            "Sugar maples are the most popular for tapping due to sugar density.",
+            "Once buds swell, sap turns 'buddy' and the season is over.",
+            "RO (Reverse Osmosis) can remove 75% of water before boiling."
         ];
+
+        // --- SUB-COMPONENT: BRIX CORRECTOR ---
+        function BrixLab() {
+            const [obs, setObs] = useState(66);
+            const [temp, setTemp] = useState(211);
+            const [cal, setCal] = useState(211);
+            const corrected = (parseFloat(obs) + (temp - cal) * 0.047).toFixed(1);
+
+            return (
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mt-6">
+                    <h3 className="text-xs font-black text-amber-900 mb-3 uppercase tracking-wider">Brix Correction Lab</h3>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="col-span-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase">Observed Brix (%)</label>
+                            <input type="number" value={obs} onChange={e=>setObs(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none border-2 border-transparent focus:border-amber-200" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase">Syrup Temp °F</label>
+                            <input type="number" value={temp} onChange={e=>setTemp(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase">Hydrometer Cal</label>
+                            <select value={cal} onChange={e=>setCal(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-sm font-bold h-[52px]">
+                                <option value="211">Hot (211°)</option>
+                                <option value="60">Cold (60°)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-2xl text-center border border-orange-100">
+                        <span className="text-[10px] font-black text-orange-800 block uppercase">True Brix Result</span>
+                        <span className="text-4xl font-black text-orange-600">{corrected}%</span>
+                    </div>
+                </div>
+            );
+        }
 
         function SugarbushApp() {
             const [zip, setZip] = useState('');
@@ -49,133 +81,133 @@
             const [trivia, setTrivia] = useState('');
 
             useEffect(() => {
-                setTrivia(facts[Math.floor(Math.random() * facts.length)]);
+                setTrivia(triviaList[Math.floor(Math.random() * triviaList.length)]);
             }, []);
 
-            async function analyzeBush() {
-                if (!/^\d{5}$/.test(zip)) return alert("Enter 5-digit ZIP");
+            async function analyze() {
+                if (!/^\d{5}$/.test(zip)) return alert("Invalid Zip");
                 setLoading(true);
                 try {
-                    // 1. Geocoding
                     const zRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
                     const zData = await zRes.json();
                     const { latitude: lat, longitude: lon } = zData.places[0];
 
-                    // 2. NWS Core Data
+                    // 1. NWS Data
                     const pRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
                     const pData = await pRes.json();
-                    
                     const gRes = await fetch(pData.properties.forecastGridData);
-                    const gData = await gRes.json();
-                    const elev = gData.properties.elevation.value * 3.28084;
-
+                    const gridData = await gRes.json();
+                    const elev = gridData.properties.elevation.value * 3.28084;
                     const fRes = await fetch(pData.properties.forecast);
                     const fData = await fRes.json();
 
-                    // 3. GDD History (Open-Meteo)
+                    // 2. Open-Meteo (Pressure & GDD History)
                     const now = new Date();
-                    const start = new Date(now.getFullYear(), 0, 1);
-                    const diffDays = Math.ceil((now - start) / (1000 * 60 * 60 * 24));
-                    const gddUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`;
-                    const gddRes = await fetch(gddUrl);
-                    const gddData = await gddRes.json();
+                    const diffDays = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / 86400000);
+                    const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=surface_pressure&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`);
+                    const omData = await omRes.json();
 
+                    // BP Logic (Pressure Adjusted)
+                    const pressInHg = omData.current.surface_pressure * 0.02953;
+                    const liveWaterBP = 212 + (pressInHg - 29.92) * 1.73;
+
+                    // GDD Logic (Base 40)
                     let totalGDD = 0;
-                    gddData.daily.time.forEach((_, i) => {
-                        const avg = (gddData.daily.temperature_2m_max[i] + gddData.daily.temperature_2m_min[i]) / 2;
+                    omData.daily.time.forEach((_, i) => {
+                        const avg = (omData.daily.temperature_2m_max[i] + omData.daily.temperature_2m_min[i]) / 2;
                         totalGDD += Math.max(avg - 40, 0);
                     });
 
-                    // Physics
-                    const waterBP = 212 - (elev / 500);
-
                     setData({
                         elev: Math.round(elev),
-                        waterBP: waterBP.toFixed(1),
-                        syrupBP: (waterBP + 7.1).toFixed(1),
+                        press: pressInHg.toFixed(2),
+                        waterBP: liveWaterBP.toFixed(1),
+                        syrupBP: (liveWaterBP + 7.1).toFixed(1),
                         gdd: Math.round(totalGDD),
-                        forecast: fData.properties.periods.filter((_, i) => i % 2 === 0).map((day, i) => ({
-                            name: day.name,
-                            high: day.temperature,
-                            low: fData.properties.periods[i*2 + 1]?.temperature || '--',
-                            isRun: (fData.properties.periods[i*2 + 1]?.temperature < 32 && day.temperature > 34),
-                            isRisk: (day.temperature > 45)
+                        forecast: fData.properties.periods.filter((_, i) => i % 2 === 0).map((d, i) => ({
+                            name: d.name,
+                            high: d.temperature,
+                            low: fData.properties.periods[i*2+1]?.temperature || '--',
+                            isRun: (fData.properties.periods[i*2+1]?.temperature < 32 && d.temperature > 34),
+                            isRisk: (d.temperature > 45)
                         }))
                     });
-                } catch (err) {
-                    alert("Weather Grid Offline. Try again.");
-                }
+                } catch (e) { alert("Weather Grid Offline"); }
                 setLoading(false);
             }
 
             return (
-                <div className="max-w-md mx-auto p-4 min-h-screen">
-                    <header className="text-center mb-6">
-                        <h1 className="text-3xl font-black text-amber-900 leading-tight">Sugarbush Signal</h1>
-                        <p className="text-xs font-bold text-amber-700 tracking-widest uppercase">Mobile Intelligence</p>
+                <div className="max-w-md mx-auto p-4 pb-12">
+                    <header className="text-center py-6">
+                        <h1 className="text-3xl font-black text-amber-900 tracking-tighter">Sugarbush Signal</h1>
+                        <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Live Season Intelligence</p>
                     </header>
 
-                    <div className="bg-amber-50 border-l-4 border-amber-600 p-4 mb-6 rounded shadow-sm italic text-sm text-amber-900">
+                    <div className="bg-white p-4 rounded-3xl shadow-sm mb-6 border-l-8 border-amber-600 italic text-sm text-amber-900">
                         "{trivia}"
                     </div>
 
                     <div className="flex gap-2 mb-8">
-                        <input 
-                            type="tel" 
-                            className="flex-1 p-4 rounded-xl border-2 border-amber-200 shadow-inner text-lg" 
-                            placeholder="Zip Code"
-                            value={zip}
-                            onChange={(e) => setZip(e.target.value)}
-                        />
-                        <button 
-                            onClick={analyzeBush}
-                            className="tap-button text-white px-6 py-4 rounded-xl font-bold shadow-lg"
-                        >
+                        <input type="tel" value={zip} onChange={e=>setZip(e.target.value)} placeholder="Zip Code" className="flex-1 p-4 rounded-2xl border-2 border-amber-100 shadow-inner text-lg font-bold focus:border-amber-400 outline-none" />
+                        <button onClick={analyze} className="tap-active bg-amber-900 text-white px-8 py-4 rounded-2xl font-black shadow-lg">
                             {loading ? '...' : 'GO'}
                         </button>
                     </div>
 
                     {data && (
-                        <div className="space-y-4 animate-in fade-in duration-500">
-                            {/* GDD Tracker */}
-                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-amber-100">
-                                <label className="text-[10px] font-black text-amber-800 uppercase">Season Vitality</label>
-                                <div className="w-full bg-gray-200 h-4 rounded-full mt-2 overflow-hidden relative">
-                                    <div className="maple-gradient h-full transition-all duration-1000" style={{width: `${(data.gdd/150)*100}%`}}></div>
-                                    <span className="absolute inset-0 text-[10px] text-center font-bold leading-4">{data.gdd} GDD</span>
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Live Vitality */}
+                            <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mb-4">
+                                <div className="flex justify-between items-end mb-2">
+                                    <label className="text-[10px] font-black text-amber-800 uppercase">Season Vitality</label>
+                                    <span className="text-xs font-bold text-amber-600">{data.gdd} GDD Accumulated</span>
+                                </div>
+                                <div className="w-full bg-gray-100 h-5 rounded-full overflow-hidden">
+                                    <div className="maple-gradient h-full transition-all duration-1000" style={{width: `${Math.min((data.gdd/150)*100, 100)}%`}}></div>
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase text-center">
+                                    {data.gdd < 100 ? "🌳 Dormant / Prime" : "🚨 Bud Swell Imminent"}
+                                </p>
+                            </div>
+
+                            {/* Boiling Dashboard */}
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Baro Pressure</label>
+                                    <span className="text-xl font-black text-amber-900">{data.press}"</span>
+                                </div>
+                                <div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Elevation</label>
+                                    <span className="text-xl font-black text-amber-900">{data.elev}'</span>
+                                </div>
+                                <div className="bg-amber-100 p-5 rounded-3xl text-center">
+                                    <label className="block text-[10px] font-bold text-amber-800 uppercase">Water Boils</label>
+                                    <span className="text-2xl font-black text-amber-900">{data.waterBP}°</span>
+                                </div>
+                                <div className="bg-orange-600 p-5 rounded-3xl text-center text-white ring-8 ring-orange-50">
+                                    <label className="block text-[10px] font-bold opacity-80 uppercase">Finish Syrup</label>
+                                    <span className="text-2xl font-black">{data.syrupBP}°</span>
                                 </div>
                             </div>
 
-                            {/* Boiling Stats */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-amber-100 p-4 rounded-2xl text-center">
-                                    <label className="block text-[10px] font-bold text-amber-800">WATER BOILS</label>
-                                    <span className="text-xl font-black">{data.waterBP}°</span>
-                                </div>
-                                <div className="bg-orange-600 p-4 rounded-2xl text-center text-white ring-4 ring-orange-100">
-                                    <label className="block text-[10px] font-bold opacity-80">FINISH SYRUP</label>
-                                    <span className="text-xl font-black">{data.syrupBP}°</span>
-                                </div>
-                            </div>
-
-                            {/* Mobile Forecast List */}
-                            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                            {/* Forecast List */}
+                            <div className="bg-white rounded-3xl shadow-sm overflow-hidden mb-6">
                                 {data.forecast.map((day, i) => (
                                     <div key={i} className="flex items-center justify-between p-4 border-b border-amber-50 last:border-0">
-                                        <div className="w-1/4">
-                                            <span className="font-bold text-sm">{day.name.slice(0,3)}</span>
-                                        </div>
-                                        <div className="w-1/4 text-center">
+                                        <span className="font-bold text-sm w-16">{day.name.slice(0,3)}</span>
+                                        <div className="flex-1 text-center">
                                             <span className="font-black text-lg text-amber-900">{day.high}°</span>
-                                            <span className="text-xs text-gray-400 ml-1">/{day.low}°</span>
+                                            <span className="text-xs text-gray-300 ml-1">/{day.low}°</span>
                                         </div>
-                                        <div className="w-2/4 text-right">
-                                            {day.isRun && <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded-md mr-1 uppercase">Run</span>}
-                                            {day.isRisk && <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-1 rounded-md uppercase">Boil</span>}
+                                        <div className="flex gap-1 justify-end w-24">
+                                            {day.isRun && <span className="bg-green-100 text-green-700 text-[9px] font-black px-2 py-1 rounded uppercase">Run</span>}
+                                            {day.isRisk && <span className="bg-red-50 text-red-600 text-[9px] font-black px-2 py-1 rounded uppercase">Risk</span>}
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
+                            <BrixLab />
                         </div>
                     )}
                 </div>
