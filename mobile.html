@@ -1,221 +1,481 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sugarbush Signal | Mobile Pro</title>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sugarbush Signal | Mobile Pro</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sugarbush">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+body { background-color:#fcf8f2; -webkit-tap-highlight-color:transparent; }
+.maple-gradient { background:linear-gradient(90deg,#81c784,#fff176,#e57373); }
+.tap-active:active { transform:scale(0.96); transition:transform 0.1s; }
+.hide-scroll::-webkit-scrollbar { display:none; }
 
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sugarbush">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="manifest" href="manifest.json">
+@keyframes spin {
+to { transform:rotate(360deg); }
+}
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+.spinner {
+display:inline-block;
+width:18px;
+height:18px;
+border:3px solid rgba(255,255,255,0.3);
+border-top-color:#fff;
+border-radius:50%;
+animation:spin 0.8s linear infinite;
+}
 
-    <style>
-        body { background-color: #fcf8f2; -webkit-tap-highlight-color: transparent; }
-        .maple-gradient { background: linear-gradient(90deg, #81c784, #fff176, #e57373); }
-        .tap-active:active { transform: scale(0.96); transition: transform 0.1s; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
+.error-shake {
+animation: shake 0.3s;
+}
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-10px); }
+75% { transform: translateX(10px); }
+}
 
-        const triviaList = [
-            "It takes roughly 40 gallons of sap to make 1 gallon of syrup.",
-            "Maple hydrometers are usually calibrated at 60°F or 211°F.",
-            "Sap pressure is highest during the thaw after a hard freeze.",
-            "Sugar maples are the most popular for tapping due to sugar density.",
-            "Once buds swell, sap turns 'buddy' and the season is over.",
-            "RO (Reverse Osmosis) can remove 75% of water before boiling."
-        ];
+.fade-in {
+animation: fadeIn 0.3s ease-in;
+}
 
-        // --- SUB-COMPONENT: BRIX CORRECTOR ---
-        function BrixLab() {
-            const [obs, setObs] = useState(66);
-            const [temp, setTemp] = useState(211);
-            const [cal, setCal] = useState(211);
-            const corrected = (parseFloat(obs) + (temp - cal) * 0.047).toFixed(1);
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+</style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body>
+  <div id="root"></div>
+  <script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-            return (
-                <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mt-6">
-                    <h3 className="text-xs font-black text-amber-900 mb-3 uppercase tracking-wider">Brix Correction Lab</h3>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="col-span-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">Observed Brix (%)</label>
-                            <input type="number" value={obs} onChange={e=>setObs(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none border-2 border-transparent focus:border-amber-200" />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">Syrup Temp °F</label>
-                            <input type="number" value={temp} onChange={e=>setTemp(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none" />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-gray-400 uppercase">Hydrometer Cal</label>
-                            <select value={cal} onChange={e=>setCal(e.target.value)} className="w-full p-3 bg-amber-50 rounded-xl text-sm font-bold h-[52px]">
-                                <option value="211">Hot (211°)</option>
-                                <option value="60">Cold (60°)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className="bg-orange-50 p-4 rounded-2xl text-center border border-orange-100">
-                        <span className="text-[10px] font-black text-orange-800 block uppercase">True Brix Result</span>
-                        <span className="text-4xl font-black text-orange-600">{corrected}%</span>
-                    </div>
-                </div>
-            );
-        }
+const triviaList = [
+"It takes roughly 40 gallons of sap to make 1 gallon of syrup.",
+"Maple hydrometers are usually calibrated at 60°F or 211°F.",
+"Sap pressure is highest during the thaw after a hard freeze.",
+"Sugar maples are the most popular for tapping due to sugar density.",
+"Once buds swell, sap turns 'buddy' and the season is over.",
+"RO (Reverse Osmosis) can remove 75% of water before boiling.",
+"The boiling point of water drops about 1°F for every 500 feet of elevation gain.",
+"Sugar maples can produce sap for over 100 years when properly tapped.",
+"The Indigenous peoples of North America were the first to discover maple sugaring.",
+"Maple syrup season typically lasts 4-6 weeks in late winter and early spring."
+];
 
-        function SugarbushApp() {
-            const [zip, setZip] = useState('');
-            const [data, setData] = useState(null);
-            const [loading, setLoading] = useState(false);
-            const [trivia, setTrivia] = useState('');
+function BrixLab(){
+const [obs,setObs]=useState(66);
+const [temp,setTemp]=useState(211);
+const [cal,setCal]=useState(211);
+const [showHelp,setShowHelp]=useState(false);
+const corrected=(parseFloat(obs)+(temp-cal)*0.047).toFixed(1);
 
-            useEffect(() => {
-                setTrivia(triviaList[Math.floor(Math.random() * triviaList.length)]);
-            }, []);
+return(
+<div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mt-6">
+<div className="flex items-center justify-between mb-3">
+<h3 className="text-xs font-black text-amber-900 uppercase tracking-wider">
+🔬 Brix Correction Lab
+</h3>
+<button 
+onClick={()=>setShowHelp(!showHelp)}
+className="w-6 h-6 rounded-full bg-amber-100 text-amber-900 font-black text-sm hover:bg-amber-200 transition-colors"
+aria-label="Toggle help information"
+>
+?
+</button>
+</div>
 
-            async function analyze() {
-                if (!/^\d{5}$/.test(zip)) return alert("Invalid Zip");
-                setLoading(true);
-                try {
-                    const zRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
-                    const zData = await zRes.json();
-                    const { latitude: lat, longitude: lon } = zData.places[0];
+{showHelp && (
+<div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg text-sm fade-in">
+<p className="font-bold text-blue-900 mb-2">📘 How to Use:</p>
+<ol className="text-blue-800 space-y-1 text-xs leading-relaxed">
+<li><strong>1.</strong> Float your hydrometer in the hot syrup sample</li>
+<li><strong>2.</strong> Read the Brix value where the liquid surface meets the scale</li>
+<li><strong>3.</strong> Measure the syrup temperature with a thermometer</li>
+<li><strong>4.</strong> Enter both values above</li>
+<li><strong>5.</strong> Select your hydrometer's calibration temp (check the label)</li>
+<li><strong>6.</strong> The corrected Brix shows your true sugar density!</li>
+</ol>
+<p className="text-blue-700 mt-3 text-xs italic">
+💡 <strong>Target:</strong> Finish syrup between 66-67% Brix for optimal density and shelf life.
+</p>
+</div>
+)}
 
-                    // 1. NWS Data
-                    const pRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
-                    const pData = await pRes.json();
-                    const gRes = await fetch(pData.properties.forecastGridData);
-                    const gridData = await gRes.json();
-                    const elev = gridData.properties.elevation.value * 3.28084;
-                    const fRes = await fetch(pData.properties.forecast);
-                    const fData = await fRes.json();
+<div className="grid grid-cols-2 gap-3 mb-4">
+<div className="col-span-2">
+<label className="text-[10px] font-bold text-gray-400 uppercase">
+Observed Brix (%)
+</label>
+<input type="number" value={obs}
+onChange={e=>setObs(e.target.value)}
+className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none border-2 border-transparent focus:border-amber-200"/>
+</div>
 
-                    // 2. Open-Meteo (Pressure & GDD History)
-                    const now = new Date();
-                    const diffDays = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / 86400000);
-                    const omRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=surface_pressure&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`);
-                    const omData = await omRes.json();
+<div>
+<label className="text-[10px] font-bold text-gray-400 uppercase">
+Syrup Temp °F
+</label>
+<input type="number" value={temp}
+onChange={e=>setTemp(e.target.value)}
+className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none"/>
+</div>
 
-                    // BP Logic (Pressure Adjusted)
-                    const pressInHg = omData.current.surface_pressure * 0.02953;
-                    const liveWaterBP = 212 + (pressInHg - 29.92) * 1.73;
+<div>
+<label className="text-[10px] font-bold text-gray-400 uppercase">
+Hydrometer Cal
+</label>
+<select value={cal} onChange={e=>setCal(e.target.value)}
+className="w-full p-3 bg-amber-50 rounded-xl text-sm font-bold h-[52px]">
+<option value="211">Hot (211°)</option>
+<option value="60">Cold (60°)</option>
+</select>
+</div>
+</div>
 
-                    // GDD Logic (Base 40)
-                    let totalGDD = 0;
-                    omData.daily.time.forEach((_, i) => {
-                        const avg = (omData.daily.temperature_2m_max[i] + omData.daily.temperature_2m_min[i]) / 2;
-                        totalGDD += Math.max(avg - 40, 0);
-                    });
+<div className="bg-orange-50 p-4 rounded-2xl text-center border border-orange-100">
+<span className="text-[10px] font-black text-orange-800 block uppercase">
+True Brix Result
+</span>
+<span className="text-4xl font-black text-orange-600">
+{corrected}%
+</span>
+</div>
+</div>
+);
+}
 
-                    setData({
-                        elev: Math.round(elev),
-                        press: pressInHg.toFixed(2),
-                        waterBP: liveWaterBP.toFixed(1),
-                        syrupBP: (liveWaterBP + 7.1).toFixed(1),
-                        gdd: Math.round(totalGDD),
-                        forecast: fData.properties.periods.filter((_, i) => i % 2 === 0).map((d, i) => ({
-                            name: d.name,
-                            high: d.temperature,
-                            low: fData.properties.periods[i*2+1]?.temperature || '--',
-                            isRun: (fData.properties.periods[i*2+1]?.temperature < 32 && d.temperature > 34),
-                            isRisk: (d.temperature > 45)
-                        }))
-                    });
-                } catch (e) { alert("Weather Grid Offline"); }
-                setLoading(false);
-            }
+function SugarbushApp(){
+const [zip,setZip]=useState('');
+const [data,setData]=useState(null);
+const [loading,setLoading]=useState(false);
+const [error,setError]=useState('');
+const [trivia,setTrivia]=useState('');
+const errorTimeoutRef = useRef(null);
 
-            return (
-                <div className="max-w-md mx-auto p-4 pb-12">
-                    <header className="text-center py-6">
-                        <h1 className="text-3xl font-black text-amber-900 tracking-tighter">Sugarbush Signal</h1>
-                        <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Live Season Intelligence</p>
-                    </header>
+useEffect(()=>{
+setTrivia(triviaList[Math.floor(Math.random()*triviaList.length)]);
+},[]);
 
-                    <div className="bg-white p-4 rounded-3xl shadow-sm mb-6 border-l-8 border-amber-600 italic text-sm text-amber-900">
-                        "{trivia}"
-                    </div>
+const showError = (msg) => {
+setError(msg);
+// Auto-hide after 6 seconds
+if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+errorTimeoutRef.current = setTimeout(() => setError(''), 6000);
+};
 
-                    <div className="flex gap-2 mb-8">
-                        <input type="tel" value={zip} onChange={e=>setZip(e.target.value)} placeholder="Zip Code" className="flex-1 p-4 rounded-2xl border-2 border-amber-100 shadow-inner text-lg font-bold focus:border-amber-400 outline-none" />
-                        <button onClick={analyze} className="tap-active bg-amber-900 text-white px-8 py-4 rounded-2xl font-black shadow-lg">
-                            {loading ? '...' : 'GO'}
-                        </button>
-                    </div>
+async function analyze(){
+if(!/^\d{5}$/.test(zip.trim())) {
+showError("Please enter a valid 5-digit ZIP code");
+return;
+}
+setLoading(true);
+setError('');
 
-                    {data && (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {/* Live Vitality */}
-                            <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mb-4">
-                                <div className="flex justify-between items-end mb-2">
-                                    <label className="text-[10px] font-black text-amber-800 uppercase">Season Vitality</label>
-                                    <span className="text-xs font-bold text-amber-600">{data.gdd} GDD Accumulated</span>
-                                </div>
-                                <div className="w-full bg-gray-100 h-5 rounded-full overflow-hidden">
-                                    <div className="maple-gradient h-full transition-all duration-1000" style={{width: `${Math.min((data.gdd/150)*100, 100)}%`}}></div>
-                                </div>
-                                <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase text-center">
-                                    {data.gdd < 100 ? "🌳 Dormant / Prime" : "🚨 Bud Swell Imminent"}
-                                </p>
-                            </div>
+try{
+const zRes=await fetch(`https://api.zippopotam.us/us/${zip}`);
+if (!zRes.ok) throw new Error('ZIP code not found');
+const zData=await zRes.json();
+const {latitude:lat,longitude:lon}=zData.places[0];
 
-                            {/* Boiling Dashboard */}
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                <div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
-                                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Baro Pressure</label>
-                                    <span className="text-xl font-black text-amber-900">{data.press}"</span>
-                                </div>
-                                <div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
-                                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Elevation</label>
-                                    <span className="text-xl font-black text-amber-900">{data.elev}'</span>
-                                </div>
-                                <div className="bg-amber-100 p-5 rounded-3xl text-center">
-                                    <label className="block text-[10px] font-bold text-amber-800 uppercase">Water Boils</label>
-                                    <span className="text-2xl font-black text-amber-900">{data.waterBP}°</span>
-                                </div>
-                                <div className="bg-orange-600 p-5 rounded-3xl text-center text-white ring-8 ring-orange-50">
-                                    <label className="block text-[10px] font-bold opacity-80 uppercase">Finish Syrup</label>
-                                    <span className="text-2xl font-black">{data.syrupBP}°</span>
-                                </div>
-                            </div>
+const pRes=await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+if (!pRes.ok) throw new Error('Weather data unavailable');
+const pData=await pRes.json();
 
-                            {/* Forecast List */}
-                            <div className="bg-white rounded-3xl shadow-sm overflow-hidden mb-6">
-                                {data.forecast.map((day, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 border-b border-amber-50 last:border-0">
-                                        <span className="font-bold text-sm w-16">{day.name.slice(0,3)}</span>
-                                        <div className="flex-1 text-center">
-                                            <span className="font-black text-lg text-amber-900">{day.high}°</span>
-                                            <span className="text-xs text-gray-300 ml-1">/{day.low}°</span>
-                                        </div>
-                                        <div className="flex gap-1 justify-end w-24">
-                                            {day.isRun && <span className="bg-green-100 text-green-700 text-[9px] font-black px-2 py-1 rounded uppercase">Run</span>}
-                                            {day.isRisk && <span className="bg-red-50 text-red-600 text-[9px] font-black px-2 py-1 rounded uppercase">Risk</span>}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+const gRes=await fetch(pData.properties.forecastGridData);
+if (!gRes.ok) throw new Error('Grid data unavailable');
+const gridData=await gRes.json();
+const elev=gridData.properties.elevation.value*3.28084;
 
-                            <BrixLab />
-                        </div>
-                    )}
-                </div>
-            );
-        }
+const fRes=await fetch(pData.properties.forecast);
+if (!fRes.ok) throw new Error('Forecast unavailable');
+const fData=await fRes.json();
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<SugarbushApp />);
-    </script>
-</body>
+const now=new Date();
+const diffDays=Math.ceil((now-new Date(now.getFullYear(),0,1))/86400000);
+
+const omRes=await fetch(
+`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=surface_pressure&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`
+);
+if (!omRes.ok) throw new Error('Pressure data unavailable');
+const omData=await omRes.json();
+
+const pressInHg=omData.current.surface_pressure*0.02953;
+const liveWaterBP=212+(pressInHg-29.92)*1.73;
+
+let totalGDD=0;
+omData.daily.time.forEach((_,i)=>{
+const h = omData.daily.temperature_2m_max[i];
+const l = omData.daily.temperature_2m_min[i];
+if (h !== null && l !== null) {
+const avg=(h+l)/2;
+totalGDD+=Math.max(avg-40,0);
+}
+});
+
+// Enhanced forecast processing with better sap flow logic
+const periods = fData.properties.periods.slice(0, 14);
+const forecast = [];
+for (let i = 0; i < periods.length - 1; i += 2) {
+const day = periods[i];
+const night = periods[i + 1];
+const high = day.temperature;
+const low = night.temperature;
+
+// Detailed sap flow analysis
+let sapStatus = '';
+let sapClass = '';
+let isRun = false;
+let isRisk = false;
+
+if (high >= 38 && high <= 50 && low < 32) {
+sapStatus = '⭐ Excellent';
+sapClass = 'bg-green-100 text-green-700';
+isRun = true;
+} else if (high >= 35 && high <= 55 && low < 35) {
+sapStatus = '✓ Good';
+sapClass = 'bg-green-50 text-green-600';
+isRun = true;
+} else if (high > 55) {
+sapStatus = '🌡️ Too Warm';
+sapClass = 'bg-red-50 text-red-600';
+isRisk = true;
+} else if (low > 32) {
+sapStatus = '🔥 No Freeze';
+sapClass = 'bg-red-50 text-red-600';
+isRisk = true;
+} else {
+sapStatus = '❄️ Too Cold';
+sapClass = 'bg-gray-100 text-gray-500';
+isRisk = true;
+}
+
+// Safety warnings
+let warning = '';
+const forecastText = (day.shortForecast + ' ' + night.shortForecast).toLowerCase();
+if (forecastText.includes('storm') || forecastText.includes('severe') || forecastText.includes('thunder')) {
+warning = '⚠️ Storm';
+} else if (forecastText.includes('ice') || forecastText.includes('freezing rain')) {
+warning = '🧊 Ice';
+} else if (day.windSpeed && parseInt(day.windSpeed) > 25) {
+warning = '💨 Wind';
+} else if (forecastText.includes('snow')) {
+warning = '❄️ Snow';
+}
+
+forecast.push({
+name: day.name,
+high,
+low,
+sapStatus,
+sapClass,
+isRun,
+isRisk,
+warning
+});
+}
+
+setData({
+elev:Math.round(elev),
+press:pressInHg.toFixed(2),
+waterBP:liveWaterBP.toFixed(1),
+syrupBP:(liveWaterBP+7.1).toFixed(1),
+gdd:Math.round(totalGDD),
+forecast
+});
+
+}catch(e){
+console.error('Analysis error:', e);
+showError('Unable to fetch weather data. Please verify the ZIP code and try again.');
+}
+setLoading(false);
+}
+
+const handleKeyPress = (e) => {
+if (e.key === 'Enter' && !loading) {
+analyze();
+}
+};
+
+return(
+<div className="max-w-md mx-auto p-4 pb-12">
+<header className="text-center py-6">
+<h1 className="text-3xl font-black text-amber-900 tracking-tighter">
+🍁 Sugarbush Signal
+</h1>
+<p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">
+Live Season Intelligence
+</p>
+</header>
+
+<div className="bg-white p-4 rounded-3xl shadow-sm mb-6 border-l-8 border-amber-600 italic text-sm text-amber-900">
+"{trivia}"
+</div>
+
+<div className="mb-6">
+<label htmlFor="zipInput" className="block text-xs font-bold text-amber-900 uppercase mb-2 ml-1">
+ZIP Code
+</label>
+<div className="flex gap-2">
+<input 
+id="zipInput"
+type="tel" 
+value={zip} 
+onChange={e=>setZip(e.target.value)}
+onKeyPress={handleKeyPress}
+placeholder="Enter 5-digit ZIP"
+maxLength="5"
+disabled={loading}
+className={`flex-1 p-4 rounded-2xl border-2 shadow-inner text-lg font-bold focus:border-amber-400 outline-none ${error ? 'border-red-300 error-shake' : 'border-amber-100'} ${loading ? 'opacity-50' : ''}`}
+aria-required="true"
+aria-describedby={error ? "error-message" : undefined}
+/>
+<button 
+onClick={analyze}
+disabled={loading}
+className="tap-active bg-amber-900 text-white px-8 py-4 rounded-2xl font-black shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+>
+{loading ? (
+<>
+<span className="spinner"></span>
+</>
+) : (
+'GO'
+)}
+</button>
+</div>
+{error && (
+<div 
+id="error-message"
+role="alert"
+className="mt-3 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm font-semibold rounded-lg fade-in"
+>
+⚠️ {error}
+</div>
+)}
+</div>
+
+{data&&(
+<div className="fade-in">
+<div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100 mb-4">
+<div className="flex justify-between items-end mb-2">
+<label className="text-[10px] font-black text-amber-800 uppercase">
+📊 Season Vitality (GDD Base 40°F)
+</label>
+<span className="text-xs font-bold text-amber-600">
+{data.gdd} Units
+</span>
+</div>
+
+<div className="w-full bg-gray-100 h-5 rounded-full overflow-hidden">
+<div className="maple-gradient h-full transition-all duration-1000"
+style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
+</div>
+
+<p className="text-[10px] text-gray-600 mt-2 font-bold uppercase text-center">
+{data.gdd<75 
+? "🌳 Buds Dormant - Sap Quality Prime!" 
+: data.gdd<125 
+? "🟡 Trees Waking - Monitor Bud Swell" 
+: "🚨 Bud Swell Imminent - Season Ending!"}
+</p>
+</div>
+
+<div className="grid grid-cols-2 gap-3 mb-4">
+<div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
+<label className="block text-[10px] font-bold text-gray-400 uppercase">
+Baro Pressure
+</label>
+<span className="text-xl font-black text-amber-900">
+{data.press}"
+</span>
+</div>
+
+<div className="bg-white p-4 rounded-3xl border border-amber-100 text-center">
+<label className="block text-[10px] font-bold text-gray-400 uppercase">
+Elevation
+</label>
+<span className="text-xl font-black text-amber-900">
+{data.elev}'
+</span>
+</div>
+
+<div className="bg-amber-100 p-5 rounded-3xl text-center">
+<label className="block text-[10px] font-bold text-amber-800 uppercase">
+Water Boils
+</label>
+<span className="text-2xl font-black text-amber-900">
+{data.waterBP}°
+</span>
+</div>
+
+<div className="bg-orange-600 p-5 rounded-3xl text-center text-white ring-8 ring-orange-50">
+<label className="block text-[10px] font-bold opacity-80 uppercase">
+🎯 Finish Syrup
+</label>
+<span className="text-2xl font-black">
+{data.syrupBP}°
+</span>
+</div>
+</div>
+
+<div className="bg-white rounded-3xl shadow-sm overflow-hidden mb-6">
+<div className="bg-amber-50 p-3 text-center border-b border-amber-100">
+<span className="text-[10px] font-black text-amber-800 uppercase tracking-wider">
+7-Day Forecast
+</span>
+</div>
+{data.forecast.map((day,i)=>(
+<div key={i}
+className="flex items-center justify-between p-4 border-b border-amber-50 last:border-0">
+<span className="font-bold text-sm w-20">
+{day.name}
+</span>
+
+<div className="flex-1 text-center">
+<span className="font-black text-lg text-amber-900">
+{day.high}°
+</span>
+<span className="text-xs text-gray-400 ml-1">
+/ {day.low}°
+</span>
+</div>
+
+<div className="flex flex-col gap-1 items-end w-28">
+<span className={`${day.sapClass} text-[9px] font-black px-2 py-1 rounded uppercase`}>
+{day.sapStatus}
+</span>
+{day.warning && (
+<span className="bg-yellow-50 text-yellow-700 text-[8px] font-bold px-2 py-0.5 rounded">
+{day.warning}
+</span>
+)}
+</div>
+</div>
+))}
+</div>
+
+<BrixLab/>
+</div>
+)}
+</div>
+);
+}
+
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<SugarbushApp/>);
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9badf5b36168e0b5',t:'MTc2Nzg5OTA1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
