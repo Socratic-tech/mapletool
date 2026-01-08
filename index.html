@@ -3,126 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | Fail-Safe Edition</title>
+    <title>SapMaster Pro | GitHub Edition</title>
     <style>
-        body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #fcf8f2; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid #a0522d; }
-        h1 { color: #a0522d; text-align: center; margin-bottom: 5px; }
-        .section { background: #fdf5e6; padding: 20px; border-radius: 8px; border: 1px solid #e9dcc9; margin-bottom: 20px; }
-        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #8b4513; }
-        input { padding: 10px; border: 2px solid #ddd; border-radius: 6px; width: 100%; box-sizing: border-box; font-size: 16px; margin-bottom: 10px; }
-        button { background: #a0522d; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:hover { background: #8b4513; }
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
-        .stat-box { background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9dcc9; text-align: center; }
-        .stat-box h3 { margin: 0; font-size: 11px; text-transform: uppercase; color: #8b4513; }
-        .stat-box p { font-size: 20px; font-weight: bold; margin: 5px 0; }
-        .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 6px; margin-bottom: 20px; display: none; border: 1px solid #d32f2f; font-size: 13px; }
-        .forecast-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; display: none; }
-        .forecast-table th { background: #a0522d; color: white; padding: 10px; }
-        .forecast-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; }
-        .manual-only { display: block; margin-top: 10px; text-align: center; font-size: 12px; color: #666; cursor: pointer; text-decoration: underline; }
+        :root { --primary: #a0522d; --bg: #fcf8f2; --card-bg: #ffffff; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 800px; width: 100%; }
+        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 8px solid var(--primary); }
+        h1 { color: var(--primary); text-align: center; margin-top: 0; }
+        
+        .input-row { display: flex; gap: 10px; margin-bottom: 25px; }
+        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        button:active { transform: scale(0.98); }
+
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; display: none; }
+        .stat { background: #fdf5e6; border: 1px solid #e9dcc9; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat label { font-size: 11px; text-transform: uppercase; color: #8b4513; font-weight: 800; display: block; }
+        .stat span { font-size: 24px; font-weight: bold; color: #333; }
+
+        .forecast { width: 100%; border-collapse: collapse; margin-top: 25px; display: none; }
+        .forecast th { text-align: left; border-bottom: 2px solid #eee; padding: 10px; font-size: 13px; }
+        .forecast td { padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; }
+        .run { background: #e8f5e9; color: #2e7d32; }
+        .risk { background: #ffebee; color: #c62828; }
+        .loading { text-align: center; display: none; font-weight: bold; color: var(--primary); padding: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>🍁 SapMaster Pro</h1>
-    
-    <div id="connectionError" class="error-msg">
-        <strong>Security Block:</strong> Your browser is blocking the weather API. <br>
-        You can still use the <b>Manual Override</b> below.
-    </div>
+<div class="container">
+    <div class="card">
+        <h1>🍁 SapMaster Pro</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 25px;">Professional-grade boiling & sap management</p>
+        
+        <div class="input-row">
+            <input type="text" id="zipCode" placeholder="Enter US Zip Code" maxlength="5">
+            <button onclick="updateDashboard()">Get Data</button>
+        </div>
 
-    <div class="section" id="inputArea">
-        <label>ZIP CODE (For Automatic Data)</label>
-        <input type="text" id="zipInput" placeholder="Ex: 05401" maxlength="5">
-        <button onclick="fetchData()">Auto-Analyze Sugarbush</button>
-        <span class="manual-only" onclick="toggleManual()">Or click here to enter elevation manually</span>
-    </div>
+        <div id="loader" class="loading">📡 Connecting to Weather Grid...</div>
 
-    <div class="section" id="manualArea" style="display:none; border-color: #d35400;">
-        <label>MANUAL ELEVATION (Feet)</label>
-        <input type="number" id="manualElev" placeholder="e.g. 500" oninput="calculateFromManual()">
-        <label>SAP SUGAR CONTENT (%)</label>
-        <input type="number" id="manualSugar" value="2.0" step="0.1" oninput="calculateFromManual()">
-    </div>
+        <div id="dashboard" class="dashboard">
+            <div class="stat"><label>Elevation</label><span id="val-elev">--</span></div>
+            <div class="stat"><label>Pressure</label><span id="val-press">--</span></div>
+            <div class="stat"><label>Water Boils</label><span id="val-water">--</span></div>
+            <div class="stat" style="background:#fff3e0; border: 2px solid #d35400;">
+                <label>Syrup Finish</label><span id="val-syrup" style="color:#d35400;">--</span>
+            </div>
+        </div>
 
-    <div class="result-grid">
-        <div class="stat-box"><h3>Elevation</h3><p id="elevText">--</p></div>
-        <div class="stat-box"><h3>Water Boils</h3><p id="waterBoil">--</p></div>
-        <div class="stat-box" style="border: 2px solid #d35400;"><h3>Finish Syrup</h3><p id="syrupFinish" style="color: #d35400;">--</p></div>
+        <table id="forecast" class="forecast">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Temp (L/H)</th>
+                    <th>Flow Status</th>
+                    <th>Safety</th>
+                </tr>
+            </thead>
+            <tbody id="forecast-body"></tbody>
+        </table>
     </div>
-
-    <div class="section" style="margin-top:20px; background: #e8f5e9; border-color: #c8e6c9;">
-        <label>YIELD CALCULATOR</label>
-        <p style="font-size:14px; margin: 5px 0;">If you collect <input type="number" id="sapGallons" value="10" style="width:60px; padding:5px; margin:0;" oninput="calculateFromManual()"> gallons of sap...</p>
-        <p style="font-weight:bold;">Output: <span id="syrupResult" style="color:#a0522d;">0.23</span> gallons of syrup.</p>
-    </div>
-
-    <table id="forecast" class="forecast-table">
-        <thead>
-            <tr><th>Date</th><th>Low/High</th><th>Sap Run</th><th>Risk</th></tr>
-        </thead>
-        <tbody id="forecastBody"></tbody>
-    </table>
 </div>
 
 <script>
-    function toggleManual() {
-        document.getElementById('manualArea').style.display = 'block';
-        document.getElementById('connectionError').style.display = 'none';
-    }
+    async function updateDashboard() {
+        const zip = document.getElementById('zipCode').value;
+        if (!/^\d{5}$/.test(zip)) return alert("Enter a 5-digit ZIP.");
 
-    function calculateFromManual() {
-        const elev = parseFloat(document.getElementById('manualElev').value) || 0;
-        const sugar = parseFloat(document.getElementById('manualSugar').value) || 2;
-        const gallons = parseFloat(document.getElementById('sapGallons').value) || 0;
-
-        // Physics logic
-        const waterBoil = 212 - (elev / 500);
-        const syrupFinish = waterBoil + 7.1;
-        
-        // Yield logic (Rule of 86)
-        const yield = gallons / (86 / sugar);
-
-        document.getElementById('elevText').innerText = elev + " ft";
-        document.getElementById('waterBoil').innerText = waterBoil.toFixed(1) + "°F";
-        document.getElementById('syrupFinish').innerText = syrupFinish.toFixed(1) + "°F";
-        document.getElementById('syrupResult').innerText = yield.toFixed(2);
-    }
-
-    async function fetchData() {
-        const zip = document.getElementById('zipInput').value;
-        const err = document.getElementById('connectionError');
-        err.style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+        document.getElementById('forecast').style.display = 'none';
 
         try {
+            // Step 1: Geocoding (ZIP to Lat/Lon)
             const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+            if (!zipRes.ok) throw new Error("ZIP not found");
             const zipData = await zipRes.json();
-            const lat = zipData.places[0].latitude;
-            const lon = zipData.places[0].longitude;
+            const { latitude: lat, longitude: lon } = zipData.places[0];
 
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&elevation=true&timezone=auto&temperature_unit=fahrenheit`);
+            // Step 2: Reliable Weather Fetch with Timeout
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
+            const weatherRes = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=surface_pressure&daily=temperature_2m_max,temperature_2m_min&elevation=true&temperature_unit=fahrenheit&timezone=auto`,
+                { signal: controller.signal }
+            );
+            clearTimeout(id);
+
+            if (!weatherRes.ok) throw new Error("Weather API Error");
             const data = await weatherRes.json();
 
-            document.getElementById('manualElev').value = Math.round(data.elevation * 3.28084);
-            calculateFromManual();
+            // PHYSICS LOGIC: Elevation + Barometric Pressure
+            const elevFt = data.elevation * 3.28084;
+            const pressureHpa = data.current.surface_pressure; 
+            
+            // Formula for Boiling Point based on pressure (hPa)
+            // 100 * (Pressure / 1013.25)^(1/5.257) * 373.15 - 273.15 converted to Fahrenheit
+            const waterBoilC = (Math.pow((pressureHpa / 1013.25), (1 / 5.257)) * 373.15) - 273.15;
+            const waterBoilF = (waterBoilC * 9/5) + 32;
+            const syrupFinishF = waterBoilF + 7.1;
 
-            // Populate Forecast
-            const tbody = document.getElementById('forecastBody');
+            // Update UI
+            document.getElementById('val-elev').innerText = Math.round(elevFt) + " ft";
+            document.getElementById('val-press').innerText = Math.round(pressureHpa) + " hPa";
+            document.getElementById('val-water').innerText = waterBoilF.toFixed(1) + "°F";
+            document.getElementById('val-syrup').innerText = syrupFinishF.toFixed(1) + "°F";
+
+            // Process Forecast
+            const tbody = document.getElementById('forecast-body');
             tbody.innerHTML = '';
             for (let i = 0; i < 7; i++) {
                 const low = data.daily.temperature_2m_min[i];
                 const high = data.daily.temperature_2m_max[i];
-                const date = new Date(data.daily.time[i] + 'T00:00').toLocaleDateString('en-US', {weekday:'short', day:'numeric'});
-                tbody.innerHTML += `<tr><td>${date}</td><td>${low}/${high}</td><td>${(low<32 && high>34)?'✅':'--'}</td><td>${(high>45||low>38)?'⚠️ Risk':'Safe'}</td></tr>`;
+                const isRun = low < 32 && high > 34;
+                const isSpoil = high > 45 || low > 38;
+
+                const date = new Date(data.daily.time[i] + 'T00:00').toLocaleDateString('en-US', {weekday: 'short', month: 'numeric', day: 'numeric'});
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${low}° / ${high}°</td>
+                        <td>${isRun ? '<span class="status-badge run">RUNNING</span>' : 'Quiet'}</td>
+                        <td>${isSpoil ? '<span class="status-badge risk">⚠️ BOIL NOW</span>' : '✅ Stable'}</td>
+                    </tr>`;
             }
+
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'grid';
             document.getElementById('forecast').style.display = 'table';
 
-        } catch (e) {
-            err.style.display = 'block';
-            toggleManual();
+        } catch (err) {
+            document.getElementById('loader').innerText = "❌ Error: " + err.message;
         }
     }
 </script>
