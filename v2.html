@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SapMaster Pro | Vitality Edition</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #fcf8f2; color: #333; padding: 20px; max-width: 850px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 8px solid #a0522d; }
+        h1 { color: #a0522d; text-align: center; margin-top: 0; margin-bottom: 10px; }
+        .trivia-box { background: #fff3e0; border-left: 5px solid #d35400; padding: 15px; margin-bottom: 20px; font-style: italic; font-size: 14px; color: #5d4037; border-radius: 4px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { padding: 12px 24px; background: #a0522d; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        /* GDD Progress Bar */
+        #gddWrapper { margin: 20px 0; display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        .gdd-container { background: #e0e0e0; border-radius: 12px; height: 20px; position: relative; overflow: hidden; margin-top: 8px; }
+        .gdd-bar { background: linear-gradient(90deg, #4caf50, #ffeb3b, #f44336); height: 100%; width: 0%; transition: width 1.5s ease-in-out; }
+        .gdd-label { position: absolute; width: 100%; text-align: center; font-size: 11px; font-weight: bold; line-height: 20px; color: #333; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; display: none; }
+        .stat { background: #fdf5e6; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e9dcc9; }
+        .stat label { display: block; font-size: 11px; font-weight: 800; color: #8b4513; text-transform: uppercase; margin-bottom: 5px; }
+        .stat span { font-size: 22px; font-weight: bold; }
+        
+        .forecast { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
+        .forecast th, .forecast td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 14px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .run { background: #e8f5e9; color: #2e7d32; }
+        .risk { background: #ffebee; color: #c62828; }
+        .loader { text-align: center; padding: 20px; color: #a0522d; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🍁 SapMaster Pro</h1>
+    <div id="trivia" class="trivia-box">Fetching a maple fact...</div>
+
+    <div class="input-group">
+        <input type="text" id="zipInput" placeholder="Enter 5-Digit ZIP" maxlength="5">
+        <button onclick="runAnalysis()">Analyze Season</button>
+    </div>
+
+    <div id="loader" class="loader">🍁 Gathering Weather History & Forecasts...</div>
+
+    <div id="gddWrapper">
+        <label style="font-size: 11px; font-weight: 800; color: #795548;">SEASON VITALITY (GDD BASE 40)</label>
+        <div class="gdd-container">
+            <div id="gddBar" class="gdd-bar"></div>
+            <div id="gddLabel" class="gdd-label">0 GDD Accumulated</div>
+        </div>
+        <div id="seasonAdvice" style="font-size: 12px; margin-top: 8px; color: #5d4037; font-weight: 500;"></div>
+    </div>
+
+    <div id="dashboard" class="grid">
+        <div class="stat"><label>Grid Elevation</label><span id="val-elev">--</span></div>
+        <div class="stat"><label>Water Boils At</label><span id="val-water">--</span></div>
+        <div class="stat" style="border: 2px solid #d35400;"><label>Finish Syrup At</label><span id="val-syrup" style="color:#d35400;">--</span></div>
+    </div>
+
+    <table id="forecastTable" class="forecast">
+        <thead>
+            <tr><th>Day</th><th>High / Low</th><th>Sap Flow</th><th>Safety</th></tr>
+        </thead>
+        <tbody id="forecastBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const facts = [
+        "It takes 40 gallons of sap to make 1 gallon of syrup.",
+        "A maple tree is usually 40 years old before it's big enough to tap.",
+        "Maple syrup is actually 66% sugar.",
+        "The 'Buddy' flavor comes from amino acids produced when buds swell.",
+        "The first 'tap' was likely done with a stone hatchet by Native Americans.",
+        "Nighttime freezes are the 'pump' that builds pressure in the tree."
+    ];
+
+    window.onload = () => {
+        document.getElementById('trivia').innerText = "Maple Fact: " + facts[Math.floor(Math.random() * facts.length)];
+    };
+
+    async function runAnalysis() {
+        const zip = document.getElementById('zipInput').value;
+        const loader = document.getElementById('loader');
+        if (!/^\d{5}$/.test(zip)) return alert("Please enter a valid ZIP.");
+
+        loader.style.display = 'block';
+
+        try {
+            // 1. Geocoding
+            const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
+            const zipData = await zipRes.json();
+            const lat = zipData.places[0].latitude;
+            const lon = zipData.places[0].longitude;
+
+            // 2. NWS Elevation & Forecast (MISSION CRITICAL)
+            const nwsPointsRes = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+            const pointsData = await nwsPointsRes.json();
+            
+            // Get Elevation from NWS Grid
+            const gridRes = await fetch(pointsData.properties.forecastGridData);
+            const gridData = await gridRes.json();
+            const elevFt = gridData.properties.elevation.value * 3.28084;
+
+            // Get Forecast from NWS
+            const forecastRes = await fetch(pointsData.properties.forecast);
+            const forecastData = await forecastRes.json();
+
+            // Calculate Boiling Points
+            const waterBoil = 212 - (elevFt / 500);
+            const syrupFinish = waterBoil + 7.1;
+
+            // UI Updates (NWS Data)
+            document.getElementById('val-elev').innerText = Math.round(elevFt) + " ft";
+            document.getElementById('val-water').innerText = waterBoil.toFixed(1) + "°F";
+            document.getElementById('val-syrup').innerText = syrupFinish.toFixed(1) + "°F";
+
+            // 3. GDD Calculation (HISTORY COMPONENT)
+            // We use a try-catch so if Open-Meteo fails, the rest of the app survives.
+            try {
+                // Calculate days since Jan 1st
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 1);
+                const diffDays = Math.ceil((now - start) / (1000 * 60 * 60 * 24));
+
+                const gddUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`;
+                const gddRes = await fetch(gddUrl);
+                const gddData = await gddRes.json();
+
+                let totalGDD = 0;
+                for (let i = 0; i < gddData.daily.time.length; i++) {
+                    const high = gddData.daily.temperature_2m_max[i];
+                    const low = gddData.daily.temperature_2m_min[i];
+                    if (high !== null && low !== null) {
+                        const avg = (high + low) / 2;
+                        totalGDD += Math.max(avg - 40, 0); // Base 40
+                    }
+                }
+
+                document.getElementById('gddWrapper').style.display = 'block';
+                const percent = Math.min((totalGDD / 150) * 100, 100);
+                document.getElementById('gddBar').style.width = percent + "%";
+                document.getElementById('gddLabel').innerText = Math.round(totalGDD) + " GDD Units (Jan 1 - Today)";
+                
+                let advice = "🌳 Buds are dormant. Sap quality is prime.";
+                if (totalGDD > 75) advice = "🟡 Season is maturing. Watch for bud swell.";
+                if (totalGDD > 125) advice = "🚨 ALERT: Buds are swelling. Season end is imminent!";
+                document.getElementById('seasonAdvice').innerText = advice;
+
+            } catch (gddErr) {
+                console.error("GDD fetch failed, but continuing with forecast.", gddErr);
+                document.getElementById('gddLabel').innerText = "Season History Unavailable";
+            }
+
+            // 4. Update Forecast Table (High / Low Flipped)
+            const tbody = document.getElementById('forecastBody');
+            tbody.innerHTML = '';
+            const periods = forecastData.properties.periods;
+            for (let i = 0; i < periods.length; i += 2) {
+                const day = periods[i]; 
+                const night = periods[i+1];
+                if (!night) break;
+
+                const isRun = (night.temperature < 32 && day.temperature > 34);
+                const isRisk = (day.temperature > 45 || night.temperature > 38);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${day.name}</td>
+                        <td><strong>${day.temperature}°</strong> / ${night.temperature}°</td>
+                        <td>${isRun ? '<span class="badge run">RUNNING</span>' : '--'}</td>
+                        <td>${isRisk ? '<span class="badge risk">BOIL NOW</span>' : '✅ SAFE'}</td>
+                    </tr>`;
+            }
+
+            document.getElementById('dashboard').style.display = 'grid';
+            document.getElementById('forecastTable').style.display = 'table';
+            loader.style.display = 'none';
+
+        } catch (err) {
+            loader.style.display = 'none';
+            alert("General Error: Government weather servers might be busy. Try again in 10 seconds.");
+        }
+    }
+</script>
+</body>
+</html>
