@@ -3,63 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SapMaster Pro | ZIP Code Edition</title>
+    <title>SapMaster Pro | Hardened Version</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #fcf8f2; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #a0522d; }
         h1 { color: #a0522d; text-align: center; margin-bottom: 5px; }
         .subtitle { text-align: center; color: #666; margin-bottom: 25px; font-style: italic; }
-        
         .input-group { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        input { padding: 12px; border: 2px solid #ddd; border-radius: 6px; width: 120px; font-size: 16px; text-align: center; }
-        input:focus { border-color: #a0522d; outline: none; }
-        
-        button { background: #a0522d; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        button:hover { background: #8b4513; }
-
+        input { padding: 12px; border: 2px solid #ddd; border-radius: 6px; width: 140px; font-size: 16px; text-align: center; }
+        button { background: #a0522d; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 25px; display: none; }
         .stat-box { background: #fdf5e6; padding: 15px; border-radius: 8px; border: 1px solid #e9dcc9; text-align: center; }
-        .stat-box h3 { margin-top: 0; font-size: 12px; text-transform: uppercase; color: #8b4513; }
+        .stat-box h3 { margin: 0; font-size: 12px; text-transform: uppercase; color: #8b4513; }
         .stat-box p { font-size: 22px; font-weight: bold; margin: 5px 0; }
-        
-        .forecast-table { width: 100%; margin-top: 30px; border-collapse: collapse; display: none; font-size: 14px; }
+        .forecast-table { width: 100%; margin-top: 30px; border-collapse: collapse; display: none; }
         .forecast-table th, .forecast-table td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
-        
         .run-yes { color: #2e7d32; font-weight: bold; }
-        .risk-high { background-color: #ffebee; color: #c62828; font-weight: bold; border-radius: 4px; padding: 4px; }
-        .risk-low { color: #2e7d32; }
-        
+        .risk-high { background-color: #ffebee; color: #c62828; font-weight: bold; padding: 4px; border-radius: 4px; }
+        .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 6px; margin: 10px 0; display: none; text-align: center; border: 1px solid #d32f2f; }
         .loading { text-align: center; display: none; margin: 20px 0; color: #a0522d; font-weight: bold; }
-        .location-tag { text-align: center; font-size: 14px; color: #888; margin-top: -15px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>🍁 SapMaster Pro</h1>
-    <p class="subtitle">Enter your ZIP code to check your sugarbush</p>
+    <p class="subtitle">Precision Boiling & Sap Safety</p>
     
     <div class="input-group">
-        <input type="text" id="zipInput" placeholder="ZIP Code" maxlength="5">
-        <button onclick="getCoordsFromZip()">Check My Trees</button>
+        <input type="text" id="zipInput" placeholder="Enter ZIP" maxlength="5">
+        <button onclick="processSapData()">Check Weather</button>
     </div>
 
-    <div id="locationName" class="location-tag"></div>
-    <div id="loading" class="loading">🔍 Geocoding and fetching weather...</div>
+    <div id="errorMessage" class="error-msg"></div>
+    <div id="loading" class="loading">⏳ Connecting to Weather APIs...</div>
 
     <div id="results" class="result-grid">
-        <div class="stat-box">
-            <h3>Calculated Elevation</h3>
-            <p id="elevText">--</p>
-        </div>
-        <div class="stat-box">
-            <h3>Water Boils</h3>
-            <p id="waterBoil">--</p>
-        </div>
-        <div class="stat-box" style="background: #fff3e0; border: 2px solid #d35400;">
-            <h3>Finish Syrup At</h3>
-            <p id="syrupFinish" style="color: #d35400;">--</p>
-        </div>
+        <div class="stat-box"><h3>Elevation</h3><p id="elevText">--</p></div>
+        <div class="stat-box"><h3>Water Boils</h3><p id="waterBoil">--</p></div>
+        <div class="stat-box" style="background:#fff3e0; border:2px solid #d35400;"><h3>Finish Syrup</h3><p id="syrupFinish" style="color:#d35400;">--</p></div>
     </div>
 
     <table id="forecast" class="forecast-table">
@@ -76,83 +58,72 @@
 </div>
 
 <script>
-    async function getCoordsFromZip() {
+    const errorDiv = document.getElementById('errorMessage');
+    const loadingDiv = document.getElementById('loading');
+
+    function showError(msg) {
+        loadingDiv.style.display = 'none';
+        errorDiv.innerText = msg;
+        errorDiv.style.display = 'block';
+    }
+
+    async function processSapData() {
         const zip = document.getElementById('zipInput').value;
+        errorDiv.style.display = 'none';
+        
         if (!/^\d{5}$/.test(zip)) {
-            alert("Please enter a valid 5-digit ZIP code.");
+            showError("Please enter a valid 5-digit ZIP code.");
             return;
         }
 
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('forecast').style.display = 'none';
+        loadingDiv.style.display = 'block';
 
         try {
-            // Step 1: Convert ZIP to Lat/Lon via Zippopotam.us
-            const zipRes = await fetch(`https://api.zippopotam.us/us/${zip}`);
-            if (!zipRes.ok) throw new Error("ZIP code not found.");
-            
-            const zipData = await zipRes.json();
+            // 1. Get Lat/Lon from ZIP
+            const zipResponse = await fetch(`https://api.zippopotam.us/us/${zip}`);
+            if (!zipResponse.ok) throw new Error("ZIP code not found. Please try another.");
+            const zipData = await zipResponse.json();
             const lat = zipData.places[0].latitude;
             const lon = zipData.places[0].longitude;
-            const city = zipData.places[0]['place name'] + ", " + zipData.places[0]['state abbreviation'];
 
-            document.getElementById('locationName').innerText = `Location: ${city}`;
+            // 2. Get Weather and Elevation
+            // Updated to use the newer Open-Meteo current parameter
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&elevation=true&timezone=auto&temperature_unit=fahrenheit`;
             
-            // Step 2: Pass to our weather/boil function
-            fetchData(lat, lon);
+            const weatherRes = await fetch(weatherUrl);
+            if (!weatherRes.ok) throw new Error("Weather service is busy. Please wait 10 seconds and try again.");
+            
+            const data = await weatherRes.json();
 
-        } catch (e) {
-            alert(e.message);
-            document.getElementById('loading').style.display = 'none';
-        }
-    }
-
-    async function fetchData(lat, lon) {
-        try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min&current_weather=true&elevation=true&timezone=auto&temperature_unit=fahrenheit`);
-            const data = await res.json();
-
-            // Formula: BP_water = 212 - (Elevation / 500)
-            const elevationFt = data.elevation * 3.28084;
-            const waterBoil = 212 - (elevationFt / 500);
+            // 3. Calculations
+            const elevFt = data.elevation * 3.28084;
+            const waterBoil = 212 - (elevFt / 500);
             const syrupFinish = waterBoil + 7.1;
 
-            document.getElementById('elevText').innerText = `${Math.round(elevationFt)} ft`;
+            // 4. Update UI
+            document.getElementById('elevText').innerText = `${Math.round(elevFt)} ft`;
             document.getElementById('waterBoil').innerText = `${waterBoil.toFixed(1)}°F`;
             document.getElementById('syrupFinish').innerText = `${syrupFinish.toFixed(1)}°F`;
-            
+
             const forecastBody = document.getElementById('forecastBody');
             forecastBody.innerHTML = '';
-            
             for (let i = 0; i < 7; i++) {
-                const date = new Date(data.daily.time[i]).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
+                const date = new Date(data.daily.time[i] + 'T00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
                 const low = data.daily.temperature_2m_min[i];
                 const high = data.daily.temperature_2m_max[i];
                 
                 const isRun = (low < 32 && high > 34);
-                let riskStatus = '<span class="risk-low">Safe</span>';
-                if (high > 45 || low > 38) {
-                    riskStatus = '<span class="risk-high">⚠️ HIGH RISK</span>';
-                }
+                let risk = (high > 45 || low > 38) ? '<span class="risk-high">⚠️ HIGH RISK</span>' : 'Safe';
 
-                forecastBody.innerHTML += `
-                    <tr>
-                        <td>${date}</td>
-                        <td>${low}° / ${high}°</td>
-                        <td>${isRun ? '<span class="run-yes">Good Flow</span>' : 'Minimal'}</td>
-                        <td>${riskStatus}</td>
-                    </tr>
-                `;
+                forecastBody.innerHTML += `<tr><td>${date}</td><td>${low}°/ ${high}°</td><td>${isRun ? '<span class="run-yes">Run</span>' : '--'}</td><td>${risk}</td></tr>`;
             }
 
-            document.getElementById('loading').style.display = 'none';
+            loadingDiv.style.display = 'none';
             document.getElementById('results').style.display = 'grid';
             document.getElementById('forecast').style.display = 'table';
 
-        } catch (e) {
-            alert("Error connecting to weather service.");
-            document.getElementById('loading').style.display = 'none';
+        } catch (err) {
+            showError("Connection Error: " + err.message);
         }
     }
 </script>
