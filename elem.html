@@ -6,135 +6,171 @@
     <title>Sugarbush School Dashboard</title>
     <style>
         :root { --wood: #5D4037; --sap: #81D4FA; --syrup: #FF6F00; --paper: #FFF9E3; --orange: #D84315; }
+        body { font-family: 'Comic Sans MS', sans-serif; background-color: var(--paper); color: var(--wood); margin: 0; padding: 0; transition: all 0.3s ease; }
+        .mode-bar { background: #333; color: white; width: 100%; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: center; gap: 10px; align-items: center; }
+        .toggle-btn { background: var(--orange); color: white; border: none; padding: 10px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .lang-btn { background: #555; color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         
-        /* Default Styles */
-        body { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; background-color: var(--paper); color: var(--wood); margin: 0; padding: 0; transition: all 0.3s ease; }
-        .container { display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
+        .section { max-width: 850px; width: 95%; background: white; margin: 20px auto; padding: 25px; border-radius: 30px; border: 5px solid #8D6E63; box-shadow: 0 8px 0 #6d360e; box-sizing: border-box; }
+        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 5px solid var(--orange); position: relative; }
+        .speak-btn { background: #8D6E63; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; float: right; margin-left: 10px; }
         
-        /* The Mode Switcher Bar */
-        .mode-bar { background: #333; color: white; width: 100%; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 1000; }
-        .toggle-btn { background: var(--orange); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-
-        .section { max-width: 850px; width: 90%; background: white; margin: 20px 0; padding: 25px; border-radius: 30px; border: 5px solid #8D6E63; box-shadow: 0 8px 0 #6d360e; box-sizing: border-box; }
-        h1 { color: var(--orange); text-align: center; font-size: 2rem; }
-        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 1.1rem; border-left: 5px solid var(--orange); }
-
-        /* Projector Mode Overrides */
-        body.projector-mode { font-size: 1.8rem; }
-        body.projector-mode .section { max-width: 95%; border-width: 8px; }
-        body.projector-mode h1 { font-size: 4rem; }
-        body.projector-mode .lesson-box { font-size: 1.8rem; padding: 30px; }
-        body.projector-mode .btn { font-size: 2.5rem; padding: 30px 60px; border-radius: 30px; }
-        body.projector-mode .temp-input { width: 100px; font-size: 2rem; }
-        body.projector-mode .status-cell { font-size: 2.5rem; }
-        body.projector-mode .glossary-grid { grid-template-columns: 1fr; gap: 30px; }
+        /* Projector Mode Styles */
+        body.projector-mode { font-size: 1.6rem; }
+        body.projector-mode .section { max-width: 98%; }
+        body.projector-mode h1 { font-size: 3.5rem; }
+        body.projector-mode .btn { font-size: 2rem; padding: 20px 40px; }
 
         /* Forecast Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #8D6E63; color: white; padding: 15px; border-radius: 15px 15px 0 0; }
-        td { padding: 15px; text-align: center; border-bottom: 2px solid #ddd; }
-        .temp-input { width: 60px; padding: 10px; border-radius: 10px; border: 3px solid #ccc; font-family: inherit; text-align: center; }
-        .status-cell { font-weight: bold; font-size: 1.3rem; }
+        th { background: #8D6E63; color: white; padding: 10px; }
+        td { padding: 10px; text-align: center; border-bottom: 2px solid #ddd; }
+        .temp-input { width: 60px; padding: 10px; font-size: 1rem; text-align: center; }
 
         /* Boiler Graphics */
-        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 300px; margin: 40px 0; }
-        .tank { width: 120px; border: 6px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 20px 20px; }
-        .sap-tank { height: 250px; background: #E1F5FE; }
-        .syrup-bottle { height: 100px; background: #FFF3E0; border-color: #FF8F00; }
+        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 250px; margin: 30px 0; }
+        .tank { width: 100px; border: 5px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 20px 20px; }
+        .sap-tank { height: 200px; background: #E1F5FE; }
+        .syrup-bottle { height: 80px; background: #FFF3E0; border-color: #FF8F00; }
         .fill { width: 100%; position: absolute; bottom: 0; transition: height 0.3s; }
         #sapFill { background: var(--sap); height: 100%; }
         #syrupFill { background: var(--syrup); height: 0%; }
-
-        .btn { cursor: pointer; border: none; transition: transform 0.1s; display: inline-block; }
-        .btn:active { transform: scale(0.95); }
-        .fire { background: var(--orange); color: white; box-shadow: 0 8px 0 #9E2A0B; }
-        .glossary-item b { color: var(--orange); font-size: 1.2em; }
+        
+        .btn { cursor: pointer; border: none; background: var(--orange); color: white; border-radius: 15px; box-shadow: 0 5px 0 #9E2A0B; }
     </style>
 </head>
 <body>
 
     <div class="mode-bar">
-        <span>Classroom View: </span>
-        <button class="toggle-btn" onclick="toggleProjector()">Toggle PROJECTOR MODE 📽️</button>
+        <button class="toggle-btn" onclick="toggleProjector()">📽️ Projector Mode</button>
+        <button class="lang-btn" id="langBtn" onclick="toggleLanguage()">Cambiar a Español 🇪🇸</button>
     </div>
 
-    <div class="container">
-        <div class="section">
-            <h1>📅 5-Day Sap Forecast</h1>
-            <div class="lesson-box">
-                <b>Morning Meeting Task:</b> Find today's weather! Enter the Low (Night) and High (Day) to see if the sap will run.
-            </div>
-            <table>
-                <tr>
-                    <th>Day</th>
-                    <th>Night (Low)</th>
-                    <th>Day (High)</th>
-                    <th>Sap Run?</th>
-                </tr>
-                <script>
-                    for(let i=1; i<=5; i++) {
-                        document.write(`
-                            <tr>
-                                <td>Day ${i}</td>
-                                <td><input type="number" class="temp-input" id="low${i}" value="28" onchange="calcForecast(${i})">°F</td>
-                                <td><input type="number" class="temp-input" id="high${i}" value="42" onchange="calcForecast(${i})">°F</td>
-                                <td id="status${i}" class="status-cell" style="color:green;">🪣 Great!</td>
-                            </tr>
-                        `);
-                    }
-                </script>
-            </table>
+    <div class="section">
+        <h1 id="titleForecast">📅 5-Day Sap Forecast</h1>
+        <div class="lesson-box">
+            <button class="speak-btn" onclick="speakText('lesson1')">🔊</button>
+            <span id="lesson1">Morning Meeting Task: Find today's weather! Enter the Low and High to see if the sap will run.</span>
         </div>
+        <table>
+            <tr id="tableHeader">
+                <th>Day</th><th>Night (Low)</th><th>Day (High)</th><th>Sap Run?</th>
+            </tr>
+            <script>
+                for(let i=1; i<=5; i++) {
+                    document.write(`
+                        <tr>
+                            <td class="dayText">Day ${i}</td>
+                            <td><input type="number" class="temp-input" id="low${i}" value="28" onchange="calcForecast(${i})">°F</td>
+                            <td><input type="number" class="temp-input" id="high${i}" value="42" onchange="calcForecast(${i})">°F</td>
+                            <td id="status${i}" class="status-cell">🪣 Great!</td>
+                        </tr>
+                    `);
+                }
+            </script>
+        </table>
+    </div>
 
-        <div class="section">
-            <h1>🔥 The Magic 40 Boiler</h1>
-            <div class="lesson-box">
-                Click the button to boil away 1 gallon of water. Can the whole class work together to make 1 gallon of syrup?
-            </div>
-            <div class="boiler-grid">
-                <div style="text-align:center;">
-                    <b>Sap Left: <span id="sapCount">40</span>g</b>
-                    <div class="tank sap-tank"><div id="sapFill" class="fill"></div></div>
-                </div>
-                <div style="text-align:center;">
-                    <b>Syrup Jug</b>
-                    <div class="tank syrup-bottle"><div id="syrupFill" class="fill"></div></div>
-                </div>
-            </div>
-            <div style="text-align:center;">
-                <button class="btn fire" id="boilBtn" onclick="boil()">BOIL! ☁️</button>
-            </div>
+    <div class="section">
+        <h1 id="titleBoiler">🔥 The Magic 40 Boiler</h1>
+        <div class="lesson-box">
+            <button class="speak-btn" onclick="speakText('lesson2')">🔊</button>
+            <span id="lesson2">Sap is mostly water. We boil it to make steam! It takes 40 gallons of sap to make 1 gallon of syrup.</span>
         </div>
+        <div class="boiler-grid">
+            <div style="text-align:center;"><b id="labelSap">Sap Left</b>: <span id="sapCount">40</span>g<div class="tank sap-tank"><div id="sapFill" class="fill"></div></div></div>
+            <div style="text-align:center;"><b id="labelSyrup">Syrup Made</b><div class="tank syrup-bottle"><div id="syrupFill" class="fill"></div></div></div>
+        </div>
+        <div style="text-align:center;">
+            <button class="btn" style="padding: 15px 30px; font-size: 1.5rem;" id="boilBtn" onclick="boil()">BOIL! ☁️</button>
+        </div>
+    </div>
 
-        <div class="section">
-            <h1>📖 Maple Dictionary</h1>
-            <div class="lesson-box">
-                Learn the big words that sugar-makers use!
-            </div>
-            <div class="glossary-grid">
-                <div class="glossary-item"><b>Xylem</b> The tiny tubes inside the tree that work like straws to carry sap.</div>
-                
-                <div class="glossary-item"><b>Tap</b> A small hole we drill into the tree to borrow a little bit of its sap.</div>
-                
-                <div class="glossary-item"><b>Evaporator</b> The big, hot pan where we boil sap to turn it into syrup.</div>
-                
-                <div class="glossary-item"><b>Steam</b> The "water clouds" that float away while we are boiling.</div>
-            </div>
+    <div class="section">
+        <h1 id="titleGlossary">📖 Maple Dictionary</h1>
+        <div id="glossaryList">
+            <p><b>Xylem:</b> Tiny tubes inside the tree that carry sap. / Tubos diminutos dentro del árbol que transportan la savia.</p>
+            
+            <p><b>Evaporator:</b> The big pan where we boil sap. / La sartén grande donde hervimos la savia.</p>
+            
+            <p><b>Tap:</b> A small hole to borrow sap. / Un pequeño agujero para tomar la savia.</p>
+            
         </div>
     </div>
 
     <script>
-        function toggleProjector() {
-            document.body.classList.toggle('projector-mode');
+        let isSpanish = false;
+
+        const translations = {
+            en: {
+                btn: "Cambiar a Español 🇪🇸",
+                titleForecast: "📅 5-Day Sap Forecast",
+                lesson1: "Morning Meeting Task: Find today's weather! Enter the Low and High to see if the sap will run.",
+                tableHeader: "<th>Day</th><th>Night (Low)</th><th>Day (High)</th><th>Sap Run?</th>",
+                titleBoiler: "🔥 The Magic 40 Boiler",
+                lesson2: "Sap is mostly water. We boil it to make steam! It takes 40 gallons of sap to make 1 gallon of syrup.",
+                labelSap: "Sap Left",
+                labelSyrup: "Syrup Made",
+                boilBtn: "BOIL! ☁️",
+                titleGlossary: "📖 Maple Dictionary",
+                great: "🪣 Great!",
+                cold: "❄️ Too Cold",
+                warm: "☁️ Too Warm"
+            },
+            es: {
+                btn: "Switch to English 🇺🇸",
+                titleForecast: "📅 Pronóstico de Savia",
+                lesson1: "Tarea de la mañana: ¡Busca el clima de hoy! Pon el Mínimo y Máximo para ver si sale savia.",
+                tableHeader: "<th>Día</th><th>Noche (Bajo)</th><th>Día (Alto)</th><th>¿Sale Savia?</th>",
+                titleBoiler: "🔥 El Caldero Mágico 40",
+                lesson2: "La savia es casi pura agua. ¡La hervimos para hacer vapor! Se necesitan 40 galones de savia para 1 de jarabe.",
+                labelSap: "Savia Restante",
+                labelSyrup: "Jarabe Hecho",
+                boilBtn: "¡HERVIR! ☁️",
+                titleGlossary: "📖 Diccionario de Arce",
+                great: "🪣 ¡Genial!",
+                cold: "❄️ Frío",
+                warm: "☁️ Caliente"
+            }
+        };
+
+        function toggleLanguage() {
+            isSpanish = !isSpanish;
+            const lang = isSpanish ? 'es' : 'en';
+            document.getElementById('langBtn').innerText = translations[lang].btn;
+            document.getElementById('titleForecast').innerText = translations[lang].titleForecast;
+            document.getElementById('lesson1').innerText = translations[lang].lesson1;
+            document.getElementById('tableHeader').innerHTML = translations[lang].tableHeader;
+            document.getElementById('titleBoiler').innerText = translations[lang].titleBoiler;
+            document.getElementById('lesson2').innerText = translations[lang].lesson2;
+            document.getElementById('labelSap').innerText = translations[lang].labelSap;
+            document.getElementById('labelSyrup').innerText = translations[lang].labelSyrup;
+            document.getElementById('boilBtn').innerText = translations[lang].boilBtn;
+            document.getElementById('titleGlossary').innerText = translations[lang].titleGlossary;
+            
+            for(let i=1; i<=5; i++) { 
+                document.querySelectorAll('.dayText')[i-1].innerText = isSpanish ? "Día " + i : "Day " + i;
+                calcForecast(i); 
+            }
         }
+
+        function speakText(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = isSpanish ? 'es-ES' : 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function toggleProjector() { document.body.classList.toggle('projector-mode'); }
 
         function calcForecast(day) {
             const low = document.getElementById('low' + day).value;
             const high = document.getElementById('high' + day).value;
             const status = document.getElementById('status' + day);
-            if (low < 32 && high > 32) { status.innerHTML = "🪣 Great!"; status.style.color = "green"; }
-            else if (low >= 32) { status.innerHTML = "☁️ Too Warm"; status.style.color = "orange"; }
-            else if (high <= 32) { status.innerHTML = "❄️ Too Cold"; status.style.color = "blue"; }
+            const lang = isSpanish ? 'es' : 'en';
+            if (low < 32 && high > 32) { status.innerHTML = translations[lang].great; status.style.color = "green"; }
+            else if (low >= 32) { status.innerHTML = translations[lang].warm; status.style.color = "orange"; }
+            else if (high <= 32) { status.innerHTML = translations[lang].cold; status.style.color = "blue"; }
         }
 
         let sap = 40;
