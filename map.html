@@ -3,81 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>National Thaw Tracker | Sugarbush Signal</title>
+    <title>Sugarbush Signal | Multi-Source Thaw Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; color: white; }
         #map { height: 100vh; width: 100%; }
-        .map-header {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(0,0,0,0.85); color: white;
-            padding: 12px 25px; border-radius: 50px; border: 1px solid #444;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            min-width: 280px; pointer-events: none;
-        }
         .legend {
-            position: absolute; bottom: 30px; left: 20px; z-index: 1000;
-            background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 15px;
-            font-size: 0.75rem; width: 200px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: absolute; bottom: 30px; right: 10px; z-index: 1000;
+            background: rgba(0,0,0,0.8); padding: 15px; border-radius: 5px; font-size: 12px;
         }
-        .bar { height: 12px; width: 100%; background: linear-gradient(to right, #ffffff, #4575b4, #ffffbf, #fdae61, #d73027); border-radius: 6px; margin: 8px 0; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .color-box { width: 20px; height: 10px; margin-right: 10px; border: 1px solid #fff; }
     </style>
 </head>
 <body>
 
-    <div class="map-header">
-        <div style="font-weight: 900; letter-spacing: 2px; font-size: 0.9rem;">2026 NATIONAL THAW TRACKER</div>
-        <div style="font-size: 0.65rem; opacity: 0.8; font-weight: bold;">LIVE ACCUMULATED HEAT (BASE 32°F)</div>
-    </div>
+    <div id="map"></div>
 
     <div class="legend">
-        <b style="color:#3e2723; text-transform: uppercase; font-size: 0.65rem;">Thaw Intensity</b>
-        <div class="bar"></div>
-        <div style="display:flex; justify-content: space-between; font-weight:bold; color:#8d6e63; font-size: 0.6rem;">
-            <span>FROZEN</span>
-            <span>THAWING</span>
-        </div>
-        <p style="margin-top:10px; font-size: 0.65rem; color: #666; line-height: 1.3;">
-            Data updates daily from the USA National Phenology Network.
-        </p>
+        <strong>Current Air Temp (&deg;F)</strong>
+        <div class="legend-item"><div class="color-box" style="background: #9900cc;"></div> < 10 (Deep Freeze)</div>
+        <div class="legend-item"><div class="color-box" style="background: #0000ff;"></div> 10 - 32 (Frozen)</div>
+        <div class="legend-item"><div class="color-box" style="background: #00ff00;"></div> 32 - 45 (The Thaw Zone)</div>
+        <div class="legend-item"><div class="color-box" style="background: #ffff00;"></div> > 45 (Flowing)</div>
     </div>
-
-    <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. Reset to Standard Mercator (Leaflet default)
-        const map = L.map('map', { 
-            zoomControl: false, 
-            attributionControl: false 
-        }).setView([39.8, -98.5], 4); // Centered on USA
+        // 1. Standard Map Setup (Web Mercator - avoids the "foreign countries" bug)
+        var map = L.map('map').setView([42.0, -93.0], 4);
 
-        // 2. Standard Dark Background Tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-        // 3. THE FIXED DATA CALL
-        // We use the specific 'agdd:agdd_32_f' layer which is live for 2026.
-        const thawLayer = L.tileLayer.wms("https://geoserver.usanpn.org/geoserver/wms", {
-            layers: 'agdd:agdd_32_f',
-            format: 'image/png',
-            transparent: true,
-            version: '1.1.1',
-            opacity: 0.65,
-            styles: 'agdd_32_f' // Force the official color style
+        // 2. High-Contrast Dark Base Map (Better for seeing colored data)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // 4. Add US State Outlines to ensure the map looks like the USA
-        fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
-            .then(res => res.json())
-            .then(data => {
-                L.geoJson(data, {
-                    style: { 
-                        color: "rgba(255,255,255,0.3)", 
-                        weight: 1, 
-                        fillOpacity: 0 
-                    }
-                }).addTo(map);
-            });
+        // SOURCE A: NOAA Real-Time Air Temperature (THE FAIL-SAFE)
+        // This should show colors immediately in the south.
+        var airTemp = L.tileLayer.wms("https://mapservices.weather.noaa.gov/raster/rest/services/rtma/rtma_temp/MapServer/WmsServer", {
+            layers: '1',
+            format: 'image/png32',
+            transparent: true,
+            opacity: 0.5,
+            attribution: "NOAA RTMA"
+        }).addTo(map);
+
+        // SOURCE B: USA-NPN Accumulated Growing Degree Days (Base 32)
+        // This is your original request. If it's blank, the NPN server hasn't updated for 2026 yet.
+        var npnThaw = L.tileLayer.wms("https://geoserver.usanpn.org/geoserver/gdd/wms", {
+            layers: 'agdd_32_f',
+            format: 'image/png',
+            transparent: true,
+            opacity: 0.7,
+            attribution: "USA-NPN"
+        });
+
+        // SOURCE C: NOAA Snow Depth (Visual proof of thaw)
+        var snowDepth = L.tileLayer.wms("https://mapservices.weather.noaa.gov/raster/rest/services/snow/snow_depth/MapServer/WmsServer", {
+            layers: '1',
+            format: 'image/png32',
+            transparent: true,
+            opacity: 0.5,
+            attribution: "NOAA NOHRSC"
+        });
+
+        // 3. Layer Controls (Top Right)
+        var baseMaps = {};
+        var overlayMaps = {
+            "Real-Time Air Temp (NOAA)": airTemp,
+            "Phenology Thaw (NPN)": npnThaw,
+            "Snow Depth (NOAA)": snowDepth
+        };
+        L.control.layers(baseMaps, overlayMaps, {collapsed: false}).addTo(map);
+
     </script>
 </body>
 </html>
