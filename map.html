@@ -4,56 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>National Thaw Tracker | Sugarbush Signal</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: sans-serif; }
-        #map { height: 100vh; width: 100%; }
-        .overlay {
+        body, html { margin: 0; padding: 0; height: 100%; background: #121212; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; background: #121212; }
+        
+        .map-overlay {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; background: rgba(0,0,0,0.8); color: white;
-            padding: 10px 20px; border-radius: 30px; border: 1px solid #444;
-            text-align: center; pointer-events: none;
+            z-index: 1000; background: rgba(0,0,0,0.85); color: white;
+            padding: 12px 25px; border-radius: 50px; border: 1px solid #444;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            min-width: 260px; pointer-events: none;
         }
+        
+        .legend {
+            position: absolute; bottom: 30px; left: 20px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 15px;
+            font-size: 0.7rem; width: 180px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .bar { height: 10px; width: 100%; background: linear-gradient(to right, #0000ff, #00ff00, #ffff00, #ff0000); border-radius: 5px; margin: 5px 0; }
     </style>
 </head>
 <body>
 
-    <div class="overlay">
-        <div style="font-weight: 900; letter-spacing: 1px; font-size: 0.9rem;">NATIONAL THAW TRACKER</div>
-        <div style="font-size: 0.6rem; opacity: 0.7; font-weight: bold;">LIVE ACCUMULATED HEAT (BASE 32°F)</div>
+    <div class="map-overlay">
+        <div style="font-weight: 900; letter-spacing: 2px; font-size: 0.8rem;">2026 NATIONAL THAW TRACKER</div>
+        <div style="font-size: 0.6rem; opacity: 0.7; font-weight: bold; text-transform: uppercase;">Accumulated Heat (Base 32°F)</div>
+    </div>
+
+    <div class="legend">
+        <b style="color:#333">THAW INTENSITY</b>
+        <div class="bar"></div>
+        <div style="display:flex; justify-content: space-between; font-weight:bold; color:#666">
+            <span>FROZEN</span>
+            <span>THAWING</span>
+        </div>
+        <p style="margin-top:8px; font-size: 0.6rem; color: #888">Orange/Red in the South indicates the season's early momentum.</p>
     </div>
 
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script>
-        // Set view to US
-        const map = L.map('map', { 
+        // CRITICAL FIX: We set the CRS to EPSG4326 to match the government's GeoServer
+        const map = L.map('map', {
+            crs: L.CRS.EPSG4326,
             zoomControl: false,
-            attributionControl: false 
+            attributionControl: false
         }).setView([37.8, -96], 4);
-        
-        // Dark Base Map
+
+        // Dark-themed background tiles
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-        // THE CORRECTED DATA LAYER
-        // We use 'agdd:agdd_32_f' which is the raw accumulated heat for the current year.
-        const thawLayer = L.tileLayer.wms("https://geoserver.usanpn.org/geoserver/gdd/wms", {
+        // THE CORRECTED WMS CALL
+        // 1. URL points to the main geoserver root
+        // 2. We use 'agdd_32_f' as both the layer and the style
+        const gddLayer = L.tileLayer.wms("https://geoserver.usanpn.org/geoserver/wms", {
             layers: 'agdd:agdd_32_f',
+            styles: 'agdd_32_f', 
             format: 'image/png',
             transparent: true,
-            opacity: 0.7,
             version: '1.1.1',
-            request: 'GetMap',
-            srs: 'EPSG:4326'
+            opacity: 0.7
         }).addTo(map);
 
-        // Add State Outlines
+        // Add State outlines for context
         fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
             .then(res => res.json())
             .then(data => {
                 L.geoJson(data, {
-                    style: { color: "rgba(255,255,255,0.2)", weight: 1, fillOpacity: 0 }
+                    style: { color: "rgba(255,255,255,0.15)", weight: 1, fillOpacity: 0 }
                 }).addTo(map);
             });
     </script>
