@@ -5,111 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sugarbush School Dashboard</title>
     <style>
-        :root {
-            --wood: #5D4037;
-            --sap: #81D4FA;
-            --syrup: #FF6F00;
-            --paper: #FFF9E3;
-        }
-        body {
-            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-            background-color: var(--paper);
-            color: var(--wood);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .nav {
-            background: #8D6E63;
-            width: 100%;
-            padding: 15px 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            padding: 8px 15px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.2);
-        }
-        .section {
-            max-width: 800px;
-            width: 90%;
-            background: white;
-            margin: 40px 0;
-            padding: 30px;
-            border-radius: 30px;
-            border: 5px solid #8D6E63;
-            box-shadow: 0 10px 0 #6d360e;
-        }
-        h1 { color: #D84315; text-align: center; }
-        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 1.1rem; }
+        :root { --wood: #5D4037; --sap: #81D4FA; --syrup: #FF6F00; --paper: #FFF9E3; }
+        body { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; background-color: var(--paper); color: var(--wood); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         
-        /* Game Styles */
-        .btn { font-size: 1.5rem; padding: 15px 30px; margin: 10px; cursor: pointer; border-radius: 15px; border: none; transition: 0.2s; }
-        .cold { background: #A5F2F3; color: #005A5B; }
-        .warm { background: #FFD700; color: #5C4D00; }
-        .fire { background: #D84315; color: white; box-shadow: 0 6px 0 #9E2A0B; }
-        .fire:active { transform: translateY(4px); box-shadow: 0 2px 0 #9E2A0B; }
+        .nav { background: #8D6E63; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+        .nav a { color: white; text-decoration: none; font-weight: bold; padding: 8px 12px; border-radius: 20px; background: rgba(255,255,255,0.2); font-size: 0.9rem; }
         
-        .display { font-size: 3rem; margin: 20px; text-align: center; }
-        
+        .section { max-width: 850px; width: 90%; background: white; margin: 20px 0; padding: 25px; border-radius: 30px; border: 5px solid #8D6E63; box-shadow: 0 8px 0 #6d360e; box-sizing: border-box; }
+        h1 { color: #D84315; text-align: center; margin-top: 0; }
+        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 1rem; border-left: 5px solid #D84315; }
+
+        /* Forecast Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #8D6E63; color: white; padding: 10px; border-radius: 10px 10px 0 0; }
+        td { padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
+        .temp-input { width: 50px; padding: 5px; border-radius: 5px; border: 2px solid #ccc; font-family: inherit; text-align: center; }
+        .status-cell { font-weight: bold; font-size: 1.2rem; }
+
         /* Boiler Graphics */
-        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 250px; position: relative; }
-        .tank { width: 100px; border: 4px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 10px 10px; }
-        .sap-tank { height: 200px; background: #E1F5FE; }
-        .syrup-bottle { height: 80px; background: #FFF3E0; border-color: #FF8F00; }
+        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 200px; margin: 20px 0; }
+        .tank { width: 80px; border: 4px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 10px 10px; }
+        .sap-tank { height: 180px; background: #E1F5FE; }
+        .syrup-bottle { height: 70px; background: #FFF3E0; border-color: #FF8F00; }
         .fill { width: 100%; position: absolute; bottom: 0; transition: height 0.3s; }
         #sapFill { background: var(--sap); height: 100%; }
         #syrupFill { background: var(--syrup); height: 0%; }
 
-        .journal-input { width: 100%; padding: 15px; border-radius: 10px; border: 2px solid #8D6E63; font-family: inherit; font-size: 1.1rem; box-sizing: border-box; }
+        /* Buttons & Glossary */
+        .btn { font-size: 1.2rem; padding: 12px 24px; cursor: pointer; border-radius: 15px; border: none; margin: 5px; }
+        .fire { background: #D84315; color: white; box-shadow: 0 5px 0 #9E2A0B; }
+        .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .glossary-item b { color: #D84315; display: block; margin-bottom: 3px; }
+        @media (max-width: 600px) { .glossary-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
     <div class="nav">
-        <a href="#weather">🌡️ Weather</a>
+        <a href="#forecast">📅 5-Day Forecast</a>
         <a href="#boiler">🔥 Boiling</a>
         <a href="#journal">📝 Journal</a>
+        <a href="#glossary">📖 Dictionary</a>
     </div>
 
-    <div class="section" id="weather">
-        <h1>🌡️ The Sap-O-Meter</h1>
+    <div class="section" id="forecast">
+        <h1>📅 5-Day Sap Forecast</h1>
         <div class="lesson-box">
-            <b>The Science:</b> Trees are like bears—they sleep in the winter! To wake them up, we need <b>Freezing Nights</b> (below 32°F) and <b>Warm Days</b> (above 32°F). This pressure makes the sap move!
+            <b>How to use:</b> Look at a weather website. Type in the <b>Low</b> (the coldest part of the night) and the <b>High</b> (the warmest part of the day). The computer will tell you if the sap will run!
         </div>
-        <p style="text-align:center; font-weight:bold;">Was it freezing last night?</p>
-        <div style="text-align:center;">
-            <button class="btn cold" onclick="setNight(true)">YES ❄️</button>
-            <button class="btn warm" onclick="setNight(false)">NO ☁️</button>
-        </div>
-        <p style="text-align:center; font-weight:bold;">Is it warm today?</p>
-        <div style="text-align:center;">
-            <button class="btn warm" onclick="setDay(true)">YES ☀️</button>
-            <button class="btn cold" onclick="setDay(false)">NO ❄️</button>
-        </div>
-        <div class="display" id="weatherResult">❓</div>
-        <p id="weatherFeed" style="text-align:center; font-weight:bold;"></p>
+        <table>
+            <tr>
+                <th>Day</th>
+                <th>Low (Night)</th>
+                <th>High (Day)</th>
+                <th>Sap Run?</th>
+            </tr>
+            <script>
+                for(let i=1; i<=5; i++) {
+                    document.write(`
+                        <tr>
+                            <td>Day ${i}</td>
+                            <td><input type="number" class="temp-input" id="low${i}" value="25" onchange="calcForecast(${i})">°F</td>
+                            <td><input type="number" class="temp-input" id="high${i}" value="40" onchange="calcForecast(${i})">°F</td>
+                            <td id="status${i}" class="status-cell">🪣 Great!</td>
+                        </tr>
+                    `);
+                }
+            </script>
+        </table>
     </div>
 
     <div class="section" id="boiler">
         <h1>🔥 The Magic 40 Boiler</h1>
         <div class="lesson-box">
-            <b>The Science:</b> Sap is 98% water and only 2% sugar! We boil the sap to turn the water into <b>Steam</b>. It takes <b>40 gallons of sap</b> to make just <b>1 gallon of syrup</b>.
+            Sap is mostly water. We boil it to make steam! It takes 40 gallons of sap to make 1 gallon of syrup. 
         </div>
         <div class="boiler-grid">
             <div style="text-align:center;">
-                <div>Sap Left: <span id="sapCount">40</span>g</div>
+                <div>Sap: <span id="sapCount">40</span>g</div>
                 <div class="tank sap-tank"><div id="sapFill" class="fill"></div></div>
             </div>
             <div style="text-align:center;">
@@ -117,36 +90,40 @@
                 <div class="tank syrup-bottle"><div id="syrupFill" class="fill"></div></div>
             </div>
         </div>
-        <div style="text-align:center; margin-top:30px;">
-            <button class="btn fire" id="boilBtn" onclick="boil()">BOIL THE WATER! ☁️</button>
-        </div>
-        <div id="winMsg" style="display:none; text-align:center; color:#D84315; font-size:1.5rem; margin-top:20px;">
-            🎉 <b>SWEET SUCCESS!</b> You made real maple syrup! 🎉
+        <div style="text-align:center;">
+            <button class="btn fire" id="boilBtn" onclick="boil()">BOIL! ☁️</button>
         </div>
     </div>
 
-    <div class="section" id="journal">
-        <h1>📝 My Tree Journal</h1>
-        <div class="lesson-box">
-            Keep track of your favorite tree! Does it have a name? What do you see today?
+    <div class="section" id="glossary">
+        <h1>📖 The Dictionary of Sweet Words</h1>
+        <div class="glossary-grid">
+            <div class="glossary-item"><b>Evaporation</b> When water gets hot and turns into a cloud (steam). This is how we get the water out of the sap!</div>
+            <div class="glossary-item"><b>Sap</b> The "energy drink" of the tree. It is mostly water with a little bit of sugar.</div>
+            <div class="glossary-item"><b>Sugarbush</b> A forest or group of maple trees used for making syrup.</div>
+            <div class="glossary-item"><b>Tap (Spile)</b> The small metal or plastic tube we put into the tree to help the sap drip out.</div>
+            <div class="glossary-item"><b>Xylem</b> The tiny "straws" inside a tree trunk that carry the sap up to the branches.</div>
+            <div class="glossary-item"><b>Finishing</b> The very last part of boiling when the sap finally becomes thick, sticky syrup.</div>
         </div>
-        <p><b>My Tree's Name:</b></p>
-        <input type="text" class="journal-input" placeholder="Example: Sir Taps-A-Lot">
-        <p><b>What happened at the tree today?</b></p>
-        <textarea class="journal-input" rows="4" placeholder="I saw a squirrel... The bucket was half full... The buds are tiny..."></textarea>
     </div>
 
     <script>
-        // Weather Logic
-        let night = false; let day = false;
-        function setNight(v) { night = v; updateW(); }
-        function setDay(v) { day = v; updateW(); }
-        function updateW() {
-            const r = document.getElementById('weatherResult');
-            const f = document.getElementById('weatherFeed');
-            if(night && day) { r.innerText="🪣"; f.innerText="IT'S A RUN! Get your buckets ready!"; }
-            else if(night && !day) { r.innerText="💤"; f.innerText="Too cold! The sap is frozen inside the tree."; }
-            else { r.innerText="🌳"; f.innerText="The tree is resting. We need a freeze first!"; }
+        // Forecast Logic
+        function calcForecast(day) {
+            const low = document.getElementById('low' + day).value;
+            const high = document.getElementById('high' + day).value;
+            const status = document.getElementById('status' + day);
+            
+            if (low < 32 && high > 32) {
+                status.innerHTML = "🪣 Great!";
+                status.style.color = "green";
+            } else if (low >= 32) {
+                status.innerHTML = "☁️ Too Warm";
+                status.style.color = "orange";
+            } else if (high <= 32) {
+                status.innerHTML = "❄️ Too Cold";
+                status.style.color = "blue";
+            }
         }
 
         // Boiler Logic
@@ -157,11 +134,6 @@
                 document.getElementById('sapCount').innerText = sap;
                 document.getElementById('sapFill').style.height = (sap/40*100) + "%";
                 document.getElementById('syrupFill').style.height = ((40-sap)/40*100) + "%";
-                if(sap === 0) {
-                    document.getElementById('boilBtn').disabled = true;
-                    document.getElementById('boilBtn').innerText = "SWEET!";
-                    document.getElementById('winMsg').style.display = "block";
-                }
             }
         }
     </script>
