@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Comic Sans MS', sans-serif; text-align: center; background: #FFF9E3; padding: 20px; }
+        .game-card { background: white; border: 5px solid #8B4513; border-radius: 30px; padding: 20px; max-width: 500px; margin: auto; box-shadow: 0 10px 0 #6d360e; }
+        .btn { font-size: 1.5rem; padding: 15px 30px; margin: 10px; cursor: pointer; border-radius: 15px; border: none; transition: 0.2s; }
+        .cold { background: #A5F2F3; color: #005A5B; }
+        .warm { background: #FFD700; color: #5C4D00; }
+        #result { font-size: 3rem; margin-top: 20px; min-height: 80px; }
+        .message { font-weight: bold; font-size: 1.2rem; color: #4E342E; }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h1>🌳 The Sap-O-Meter</h1>
+        <p class="message">Was it freezing last night?</p>
+        <button class="btn cold" onclick="setNight(true)">YES ❄️</button>
+        <button class="btn warm" onclick="setNight(false)">NO ☁️</button>
+        
+        <p class="message">Is it warm today?</p>
+        <button class="btn warm" onclick="setDay(true)">YES ☀️</button>
+        <button class="btn cold" onclick="setDay(false)">NO ❄️</button>
+
+        <div id="result">❓</div>
+        <p id="feedback" class="message">Pick the weather to see!</p>
+    </div>
+
+    <script>
+        let nightFrozen = false;
+        let dayWarm = false;
+
+        function setNight(val) { nightFrozen = val; checkSap(); }
+        function setDay(val) { dayWarm = val; checkSap(); }
+
+        function checkSap() {
+            const res = document.getElementById('result');
+            const feed = document.getElementById('feedback');
+            if (nightFrozen && dayWarm) {
+                res.innerHTML = "🪣 🍁 🪣";
+                feed.innerHTML = "IT'S A RUN! The sap is flowing!";
+            } else if (nightFrozen && !dayWarm) {
+                res.innerHTML = "💤 ❄️ 💤";
+                feed.innerHTML = "Too cold! The trees are still frozen.";
+            } else {
+                res.innerHTML = "🌳 ☁️ 🌳";
+                feed.innerHTML = "The trees are resting. We need a freeze first!";
+            }
+        }
+    </script>
+</body>
+</html>
