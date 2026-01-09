@@ -5,128 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sugarbush School Dashboard</title>
     <style>
-        :root { --wood: #5D4037; --sap: #81D4FA; --syrup: #FF6F00; --paper: #FFF9E3; }
-        body { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; background-color: var(--paper); color: var(--wood); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+        :root { --wood: #5D4037; --sap: #81D4FA; --syrup: #FF6F00; --paper: #FFF9E3; --orange: #D84315; }
         
-        .nav { background: #8D6E63; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 10px; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; font-weight: bold; padding: 8px 12px; border-radius: 20px; background: rgba(255,255,255,0.2); font-size: 0.9rem; }
+        /* Default Styles */
+        body { font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; background-color: var(--paper); color: var(--wood); margin: 0; padding: 0; transition: all 0.3s ease; }
+        .container { display: flex; flex-direction: column; align-items: center; padding-bottom: 50px; }
         
+        /* The Mode Switcher Bar */
+        .mode-bar { background: #333; color: white; width: 100%; padding: 10px; text-align: center; position: sticky; top: 0; z-index: 1000; }
+        .toggle-btn { background: var(--orange); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+
         .section { max-width: 850px; width: 90%; background: white; margin: 20px 0; padding: 25px; border-radius: 30px; border: 5px solid #8D6E63; box-shadow: 0 8px 0 #6d360e; box-sizing: border-box; }
-        h1 { color: #D84315; text-align: center; margin-top: 0; }
-        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 1rem; border-left: 5px solid #D84315; }
+        h1 { color: var(--orange); text-align: center; font-size: 2rem; }
+        .lesson-box { background: #EFEBE9; padding: 15px; border-radius: 15px; margin-bottom: 20px; font-size: 1.1rem; border-left: 5px solid var(--orange); }
+
+        /* Projector Mode Overrides */
+        body.projector-mode { font-size: 1.8rem; }
+        body.projector-mode .section { max-width: 95%; border-width: 8px; }
+        body.projector-mode h1 { font-size: 4rem; }
+        body.projector-mode .lesson-box { font-size: 1.8rem; padding: 30px; }
+        body.projector-mode .btn { font-size: 2.5rem; padding: 30px 60px; border-radius: 30px; }
+        body.projector-mode .temp-input { width: 100px; font-size: 2rem; }
+        body.projector-mode .status-cell { font-size: 2.5rem; }
+        body.projector-mode .glossary-grid { grid-template-columns: 1fr; gap: 30px; }
 
         /* Forecast Table */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #8D6E63; color: white; padding: 10px; border-radius: 10px 10px 0 0; }
-        td { padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
-        .temp-input { width: 50px; padding: 5px; border-radius: 5px; border: 2px solid #ccc; font-family: inherit; text-align: center; }
-        .status-cell { font-weight: bold; font-size: 1.2rem; }
+        th { background: #8D6E63; color: white; padding: 15px; border-radius: 15px 15px 0 0; }
+        td { padding: 15px; text-align: center; border-bottom: 2px solid #ddd; }
+        .temp-input { width: 60px; padding: 10px; border-radius: 10px; border: 3px solid #ccc; font-family: inherit; text-align: center; }
+        .status-cell { font-weight: bold; font-size: 1.3rem; }
 
         /* Boiler Graphics */
-        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 200px; margin: 20px 0; }
-        .tank { width: 80px; border: 4px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 10px 10px; }
-        .sap-tank { height: 180px; background: #E1F5FE; }
-        .syrup-bottle { height: 70px; background: #FFF3E0; border-color: #FF8F00; }
+        .boiler-grid { display: flex; justify-content: space-around; align-items: flex-end; height: 300px; margin: 40px 0; }
+        .tank { width: 120px; border: 6px solid #90A4AE; position: relative; overflow: hidden; border-radius: 0 0 20px 20px; }
+        .sap-tank { height: 250px; background: #E1F5FE; }
+        .syrup-bottle { height: 100px; background: #FFF3E0; border-color: #FF8F00; }
         .fill { width: 100%; position: absolute; bottom: 0; transition: height 0.3s; }
         #sapFill { background: var(--sap); height: 100%; }
         #syrupFill { background: var(--syrup); height: 0%; }
 
-        /* Buttons & Glossary */
-        .btn { font-size: 1.2rem; padding: 12px 24px; cursor: pointer; border-radius: 15px; border: none; margin: 5px; }
-        .fire { background: #D84315; color: white; box-shadow: 0 5px 0 #9E2A0B; }
-        .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .glossary-item b { color: #D84315; display: block; margin-bottom: 3px; }
-        @media (max-width: 600px) { .glossary-grid { grid-template-columns: 1fr; } }
+        .btn { cursor: pointer; border: none; transition: transform 0.1s; display: inline-block; }
+        .btn:active { transform: scale(0.95); }
+        .fire { background: var(--orange); color: white; box-shadow: 0 8px 0 #9E2A0B; }
+        .glossary-item b { color: var(--orange); font-size: 1.2em; }
     </style>
 </head>
 <body>
 
-    <div class="nav">
-        <a href="#forecast">📅 5-Day Forecast</a>
-        <a href="#boiler">🔥 Boiling</a>
-        <a href="#journal">📝 Journal</a>
-        <a href="#glossary">📖 Dictionary</a>
+    <div class="mode-bar">
+        <span>Classroom View: </span>
+        <button class="toggle-btn" onclick="toggleProjector()">Toggle PROJECTOR MODE 📽️</button>
     </div>
 
-    <div class="section" id="forecast">
-        <h1>📅 5-Day Sap Forecast</h1>
-        <div class="lesson-box">
-            <b>How to use:</b> Look at a weather website. Type in the <b>Low</b> (the coldest part of the night) and the <b>High</b> (the warmest part of the day). The computer will tell you if the sap will run!
+    <div class="container">
+        <div class="section">
+            <h1>📅 5-Day Sap Forecast</h1>
+            <div class="lesson-box">
+                <b>Morning Meeting Task:</b> Find today's weather! Enter the Low (Night) and High (Day) to see if the sap will run.
+            </div>
+            <table>
+                <tr>
+                    <th>Day</th>
+                    <th>Night (Low)</th>
+                    <th>Day (High)</th>
+                    <th>Sap Run?</th>
+                </tr>
+                <script>
+                    for(let i=1; i<=5; i++) {
+                        document.write(`
+                            <tr>
+                                <td>Day ${i}</td>
+                                <td><input type="number" class="temp-input" id="low${i}" value="28" onchange="calcForecast(${i})">°F</td>
+                                <td><input type="number" class="temp-input" id="high${i}" value="42" onchange="calcForecast(${i})">°F</td>
+                                <td id="status${i}" class="status-cell" style="color:green;">🪣 Great!</td>
+                            </tr>
+                        `);
+                    }
+                </script>
+            </table>
         </div>
-        <table>
-            <tr>
-                <th>Day</th>
-                <th>Low (Night)</th>
-                <th>High (Day)</th>
-                <th>Sap Run?</th>
-            </tr>
-            <script>
-                for(let i=1; i<=5; i++) {
-                    document.write(`
-                        <tr>
-                            <td>Day ${i}</td>
-                            <td><input type="number" class="temp-input" id="low${i}" value="25" onchange="calcForecast(${i})">°F</td>
-                            <td><input type="number" class="temp-input" id="high${i}" value="40" onchange="calcForecast(${i})">°F</td>
-                            <td id="status${i}" class="status-cell">🪣 Great!</td>
-                        </tr>
-                    `);
-                }
-            </script>
-        </table>
-    </div>
 
-    <div class="section" id="boiler">
-        <h1>🔥 The Magic 40 Boiler</h1>
-        <div class="lesson-box">
-            Sap is mostly water. We boil it to make steam! It takes 40 gallons of sap to make 1 gallon of syrup. 
-        </div>
-        <div class="boiler-grid">
-            <div style="text-align:center;">
-                <div>Sap: <span id="sapCount">40</span>g</div>
-                <div class="tank sap-tank"><div id="sapFill" class="fill"></div></div>
+        <div class="section">
+            <h1>🔥 The Magic 40 Boiler</h1>
+            <div class="lesson-box">
+                Click the button to boil away 1 gallon of water. Can the whole class work together to make 1 gallon of syrup?
+            </div>
+            <div class="boiler-grid">
+                <div style="text-align:center;">
+                    <b>Sap Left: <span id="sapCount">40</span>g</b>
+                    <div class="tank sap-tank"><div id="sapFill" class="fill"></div></div>
+                </div>
+                <div style="text-align:center;">
+                    <b>Syrup Jug</b>
+                    <div class="tank syrup-bottle"><div id="syrupFill" class="fill"></div></div>
+                </div>
             </div>
             <div style="text-align:center;">
-                <div>Syrup Made</div>
-                <div class="tank syrup-bottle"><div id="syrupFill" class="fill"></div></div>
+                <button class="btn fire" id="boilBtn" onclick="boil()">BOIL! ☁️</button>
             </div>
         </div>
-        <div style="text-align:center;">
-            <button class="btn fire" id="boilBtn" onclick="boil()">BOIL! ☁️</button>
-        </div>
-    </div>
 
-    <div class="section" id="glossary">
-        <h1>📖 The Dictionary of Sweet Words</h1>
-        <div class="glossary-grid">
-            <div class="glossary-item"><b>Evaporation</b> When water gets hot and turns into a cloud (steam). This is how we get the water out of the sap!</div>
-            <div class="glossary-item"><b>Sap</b> The "energy drink" of the tree. It is mostly water with a little bit of sugar.</div>
-            <div class="glossary-item"><b>Sugarbush</b> A forest or group of maple trees used for making syrup.</div>
-            <div class="glossary-item"><b>Tap (Spile)</b> The small metal or plastic tube we put into the tree to help the sap drip out.</div>
-            <div class="glossary-item"><b>Xylem</b> The tiny "straws" inside a tree trunk that carry the sap up to the branches.</div>
-            <div class="glossary-item"><b>Finishing</b> The very last part of boiling when the sap finally becomes thick, sticky syrup.</div>
+        <div class="section">
+            <h1>📖 Maple Dictionary</h1>
+            <div class="lesson-box">
+                Learn the big words that sugar-makers use!
+            </div>
+            <div class="glossary-grid">
+                <div class="glossary-item"><b>Xylem</b> The tiny tubes inside the tree that work like straws to carry sap.</div>
+                
+                <div class="glossary-item"><b>Tap</b> A small hole we drill into the tree to borrow a little bit of its sap.</div>
+                
+                <div class="glossary-item"><b>Evaporator</b> The big, hot pan where we boil sap to turn it into syrup.</div>
+                
+                <div class="glossary-item"><b>Steam</b> The "water clouds" that float away while we are boiling.</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Forecast Logic
+        function toggleProjector() {
+            document.body.classList.toggle('projector-mode');
+        }
+
         function calcForecast(day) {
             const low = document.getElementById('low' + day).value;
             const high = document.getElementById('high' + day).value;
             const status = document.getElementById('status' + day);
-            
-            if (low < 32 && high > 32) {
-                status.innerHTML = "🪣 Great!";
-                status.style.color = "green";
-            } else if (low >= 32) {
-                status.innerHTML = "☁️ Too Warm";
-                status.style.color = "orange";
-            } else if (high <= 32) {
-                status.innerHTML = "❄️ Too Cold";
-                status.style.color = "blue";
-            }
+            if (low < 32 && high > 32) { status.innerHTML = "🪣 Great!"; status.style.color = "green"; }
+            else if (low >= 32) { status.innerHTML = "☁️ Too Warm"; status.style.color = "orange"; }
+            else if (high <= 32) { status.innerHTML = "❄️ Too Cold"; status.style.color = "blue"; }
         }
 
-        // Boiler Logic
         let sap = 40;
         function boil() {
             if(sap > 0) {
