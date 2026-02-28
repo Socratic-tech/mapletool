@@ -1,3 +1,4 @@
+Index · HTML
 <!doctype html>
 <html lang="en">
  <head>
@@ -12,11 +13,9 @@
 body { background-color:#fcf8f2; -webkit-tap-highlight-color:transparent; box-sizing: border-box; }
 .maple-gradient { background:linear-gradient(90deg,#81c784,#fff176,#e57373); }
 .tap-active:active { transform:scale(0.98); transition:transform 0.1s; }
-
 @keyframes spin {
 to { transform:rotate(360deg); }
 }
-
 .spinner {
 display:inline-block;
 width:18px;
@@ -26,26 +25,21 @@ border-top-color:#fff;
 border-radius:50%;
 animation:spin 0.8s linear infinite;
 }
-
 .error-shake {
 animation: shake 0.3s;
 }
-
 @keyframes shake {
 0%, 100% { transform: translateX(0); }
 25% { transform: translateX(-10px); }
 75% { transform: translateX(10px); }
 }
-
 .fade-in {
 animation: fadeIn 0.3s ease-in;
 }
-
 @keyframes fadeIn {
 from { opacity: 0; transform: translateY(-10px); }
 to { opacity: 1; transform: translateY(0); }
 }
-
 .grade-golden { background: linear-gradient(135deg, #f9d87a 0%, #f4c430 100%); }
 .grade-amber { background: linear-gradient(135deg, #e8a54f 0%, #d68910 100%); }
 .grade-dark { background: linear-gradient(135deg, #8b4513 0%, #5c2e0a 100%); }
@@ -62,14 +56,12 @@ to { opacity: 1; transform: translateY(0); }
 (function() {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const isSmallScreen = window.innerWidth < 768;
-  
+
   if (isMobile || isSmallScreen) {
     window.location.href = 'mobile.html';
   }
 })();
-
 const { useState, useEffect, useRef } = React;
-
 const triviaList = [
 "It takes roughly 40 gallons of sap to make 1 gallon of syrup.",
 "Maple hydrometers are usually calibrated at 60°F or 211°F.",
@@ -82,14 +74,12 @@ const triviaList = [
 "The Indigenous peoples of North America were the first to discover maple sugaring.",
 "Maple syrup season typically lasts 4-6 weeks in late winter and early spring."
 ];
-
 function predictGrade(gdd) {
 if (gdd < 30) return { grade: "Golden Delicate", color: "grade-golden", desc: "Light, delicate flavor" };
 if (gdd < 60) return { grade: "Amber Rich", color: "grade-amber", desc: "Rich, full-bodied flavor" };
 if (gdd < 100) return { grade: "Dark Robust", color: "grade-dark", desc: "Robust, caramel notes" };
 return { grade: "Very Dark Strong", color: "grade-very-dark", desc: "Strong, intense flavor" };
 }
-
 function AdvancedProductionCalc({ data }) {
 const [tapCount, setTapCount] = useState(100);
 const [avgSapPerTap, setAvgSapPerTap] = useState(10);
@@ -98,7 +88,6 @@ const [roConcentration, setRoConcentration] = useState(8);
 const [fuelCost, setFuelCost] = useState(3.5);
 const [fuelType, setFuelType] = useState('wood');
 const [evapRate, setEvapRate] = useState(25);
-
 const goodRunDays = data.forecast.filter(d => d.isRun).length;
 const totalSap = tapCount * avgSapPerTap * goodRunDays;
 const syrupYield = (totalSap * sugarContent) / 66.9;
@@ -107,13 +96,11 @@ const boilTime = waterToRemove / evapRate;
 const fuelNeeded = fuelType === 'wood' ? boilTime * 15 : fuelType === 'oil' ? boilTime * 0.8 : boilTime * 1.2;
 const fuelCostTotal = fuelNeeded * fuelCost;
 const valueAtWholesale = syrupYield * 45;
-
 return (
 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-3xl shadow-lg border border-indigo-200">
 <h3 className="text-sm font-black text-indigo-900 uppercase tracking-wider mb-4">
 🎛️ Production Calculator
 </h3>
-
 <div className="grid md:grid-cols-2 gap-6">
 <div className="bg-white p-5 rounded-2xl">
 <h4 className="text-xs font-bold text-indigo-700 uppercase mb-4">⚙️ Setup Parameters</h4>
@@ -200,7 +187,6 @@ className="w-full p-3 bg-indigo-50 rounded-lg text-sm font-bold outline-none bor
 </div>
 </div>
 </div>
-
 <div className="space-y-4">
 <div className="bg-gradient-to-br from-green-400 to-emerald-500 p-6 rounded-2xl text-white shadow-lg">
 <div className="text-xs font-bold opacity-90 uppercase mb-3">��� 7-Day Production Forecast</div>
@@ -215,7 +201,6 @@ className="w-full p-3 bg-indigo-50 rounded-lg text-sm font-bold outline-none bor
 </div>
 </div>
 </div>
-
 <div className="grid grid-cols-3 gap-3">
 <div className="bg-white p-4 rounded-2xl text-center border border-indigo-100">
 <div className="text-[9px] font-bold text-gray-500 uppercase">Boil Time</div>
@@ -230,7 +215,6 @@ className="w-full p-3 bg-indigo-50 rounded-lg text-sm font-bold outline-none bor
 <div className="text-xl font-black text-indigo-900">{(totalSap / syrupYield).toFixed(0)}:1</div>
 </div>
 </div>
-
 <div className="bg-white p-5 rounded-2xl border-2 border-orange-200">
 <div className="text-xs font-bold text-orange-700 uppercase mb-3">💰 Economics Analysis</div>
 <div className="space-y-2">
@@ -269,18 +253,16 @@ ${(valueAtWholesale - fuelCostTotal).toFixed(2)}
 </div>
 );
 }
-
 function GradingAssistant({ gdd }) {
 const [showHelp, setShowHelp] = useState(false);
 const prediction = predictGrade(gdd);
-
 return (
 <div className="bg-white p-5 rounded-3xl shadow-sm border border-purple-100">
 <div className="flex items-center justify-between mb-3">
 <h3 className="text-xs font-black text-purple-900 uppercase tracking-wider">
 🧪 Syrup Grade Predictor
 </h3>
-<button 
+<button
 onClick={() => setShowHelp(!showHelp)}
 className="w-7 h-7 rounded-full bg-purple-100 text-purple-900 font-black text-sm hover:bg-purple-200 transition-colors"
 aria-label="Toggle grading help"
@@ -288,7 +270,6 @@ aria-label="Toggle grading help"
 ?
 </button>
 </div>
-
 {showHelp && (
 <div className="mb-4 p-4 bg-purple-50 border-l-4 border-purple-400 rounded-lg text-sm fade-in">
 <p className="font-bold text-purple-900 mb-2">📘 Grade Guide:</p>
@@ -315,7 +296,6 @@ aria-label="Toggle grading help"
 </p>
 </div>
 )}
-
 <div className="flex items-center gap-4 mb-3">
 <div className={`w-16 h-16 rounded-xl ${prediction.color} border-2 border-gray-300 shadow-inner`}></div>
 <div className="flex-1">
@@ -323,13 +303,12 @@ aria-label="Toggle grading help"
 <div className="text-xs text-gray-600">{prediction.desc}</div>
 </div>
 </div>
-
 <div className="bg-purple-50 p-3 rounded-xl text-center">
 <span className="text-[10px] font-bold text-purple-700 uppercase block mb-1">
 Current Season Progress
 </span>
 <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-<div 
+<div
 className="h-full transition-all duration-1000"
 style={{
 width: `${Math.min((gdd / 150) * 100, 100)}%`,
@@ -344,11 +323,10 @@ background: 'linear-gradient(90deg, #f9d87a, #e8a54f, #8b4513, #3e2723)'
 </div>
 );
 }
-
 function RunPredictor({ forecast }) {
 const runWindows = [];
 let currentWindow = [];
-  
+
 forecast.forEach((day, idx) => {
 if (day.isRun) {
 currentWindow.push({ ...day, index: idx });
@@ -362,7 +340,6 @@ currentWindow = [];
 if (currentWindow.length >= 2) {
 runWindows.push(currentWindow);
 }
-
 let best3Day = null;
 let maxScore = 0;
 for (let i = 0; i <= forecast.length - 3; i++) {
@@ -373,15 +350,12 @@ maxScore = score;
 best3Day = { start: forecast[i].name, days: window, score };
 }
 }
-
 const shouldFire = runWindows.some(w => w.length >= 2) || (best3Day && best3Day.score >= 2);
-
 return (
 <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-3xl shadow-sm border border-green-200">
 <h3 className="text-xs font-black text-green-900 uppercase tracking-wider mb-3">
 📅 Multi-Day Run Analysis
 </h3>
-
 {runWindows.length > 0 && (
 <div className="mb-3">
 <div className="text-[10px] font-bold text-green-700 uppercase mb-2">Consecutive Run Windows:</div>
@@ -399,7 +373,6 @@ return (
 ))}
 </div>
 )}
-
 {best3Day && (
 <div className="bg-white p-4 rounded-xl border-2 border-green-300 mb-3">
 <div className="text-[10px] font-bold text-green-700 uppercase mb-2">🏆 Best 3-Day Window:</div>
@@ -411,7 +384,6 @@ Starting {best3Day.start}
 </div>
 </div>
 )}
-
 <div className={`p-4 rounded-xl text-center border-2 ${shouldFire ? 'bg-green-600 border-green-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-700'}`}>
 <div className="text-[10px] font-bold uppercase mb-1">
 🔥 Evaporator Recommendation
@@ -423,22 +395,20 @@ Starting {best3Day.start}
 </div>
 );
 }
-
 function SummaryNarrative({ data }) {
 const prediction = predictGrade(data.gdd);
 const goodRunDays = data.forecast.filter(d => d.isRun).length;
 const excellentDays = data.forecast.filter(d => d.sapStatus === '⭐ Excellent').length;
-  
+
 let pressureStatus = '';
 if (data.press > 30.5) pressureStatus = 'high';
 else if (data.press < 29.5) pressureStatus = 'low';
 else pressureStatus = 'normal';
-  
+
 let seasonPhase = '';
 if (data.gdd < 75) seasonPhase = 'early';
 else if (data.gdd < 125) seasonPhase = 'mid';
 else seasonPhase = 'late';
-
 return (
 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-3xl shadow-sm border border-blue-200">
 <h3 className="text-xs font-black text-blue-900 uppercase tracking-wider mb-3">
@@ -446,20 +416,20 @@ return (
 </h3>
 <div className="text-sm text-blue-900 leading-relaxed space-y-2">
 <p>
-At <strong>{data.elev} feet</strong> above sea level (where the air is thinner but the syrup dreams are bigger), you're sitting at <strong>{data.press}" pressure</strong>. 
+At <strong>{data.elev} feet</strong> above sea level (where the air is thinner but the syrup dreams are bigger), you're sitting at <strong>{data.press}" pressure</strong>.
 That means water's having an existential crisis at <strong>{data.waterBP}°F</strong> instead of the usual 212°. Hit <strong>{data.syrupBP}°F</strong> to achieve liquid gold status! 🎯
 </p>
 <p>
 {seasonPhase === 'early' && (
-<>With <strong>{data.gdd} GDD</strong> on the board, you're catching the <strong>early bird special</strong>—buds are snoozing, sap is pristine, and you're on track for 
+<>With <strong>{data.gdd} GDD</strong> on the board, you're catching the <strong>early bird special</strong>—buds are snoozing, sap is pristine, and you're on track for
 <strong> {prediction.grade}</strong> that'll make pancakes weep tears of joy. This is the good stuff! 💎</>
 )}
 {seasonPhase === 'mid' && (
-<>Your <strong>{data.gdd} GDD</strong> says we're in the <strong>middle innings</strong>—trees are stretching, yawning, and thinking about waking up. 
+<>Your <strong>{data.gdd} GDD</strong> says we're in the <strong>middle innings</strong>—trees are stretching, yawning, and thinking about waking up.
 Keep one eye on those buds! You're brewing <strong>{prediction.grade}</strong> with character that could tell stories. 🌳</>
 )}
 {seasonPhase === 'late' && (
-<>At <strong>{data.gdd} GDD</strong>, we're in the <strong>final countdown</strong>—buds are about to pop like champagne corks! 🚨 
+<>At <strong>{data.gdd} GDD</strong>, we're in the <strong>final countdown</strong>—buds are about to pop like champagne corks! 🚨
 Your <strong>{prediction.grade}</strong> will pack a flavor punch that doesn't apologize. Taste-test for that dreaded "buddy" funk before bottling! ⏰</>
 )}
 </p>
@@ -467,7 +437,7 @@ Your <strong>{prediction.grade}</strong> will pack a flavor punch that doesn't a
 {goodRunDays > 0 ? (
 <>
 Mother Nature's dealing you <strong>{goodRunDays} good day{goodRunDays !== 1 ? 's' : ''}</strong>
-{excellentDays > 0 && <> (with <strong>{excellentDays}</strong> absolutely *chef's kiss* condition{excellentDays !== 1 ? 's' : ''})</>}. 
+{excellentDays > 0 && <> (with <strong>{excellentDays}</strong> absolutely *chef's kiss* condition{excellentDays !== 1 ? 's' : ''})</>}.
 {goodRunDays >= 3 ? ' Fire up that evaporator—it\'s game time! 🔥' : goodRunDays >= 2 ? ' Decent window here, make it count! 🎲' : ' Blink and you\'ll miss it! 💨'}
 </>
 ) : (
@@ -480,21 +450,19 @@ The freeze-thaw gods are not cooperating right now. Save your firewood and patie
 </div>
 );
 }
-
 function BrixLab(){
 const [obs,setObs]=useState(66);
 const [temp,setTemp]=useState(211);
 const [cal,setCal]=useState(211);
 const [showHelp,setShowHelp]=useState(false);
 const corrected=(parseFloat(obs)+(temp-cal)*0.047).toFixed(1);
-
 return(
 <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100">
 <div className="flex items-center justify-between mb-3">
 <h3 className="text-xs font-black text-amber-900 uppercase tracking-wider">
 🔬 Brix Correction Lab
 </h3>
-<button 
+<button
 onClick={()=>setShowHelp(!showHelp)}
 className="w-7 h-7 rounded-full bg-amber-100 text-amber-900 font-black text-sm hover:bg-amber-200 transition-colors"
 aria-label="Toggle help information"
@@ -502,7 +470,6 @@ aria-label="Toggle help information"
 ?
 </button>
 </div>
-
 {showHelp && (
 <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg text-sm fade-in">
 <p className="font-bold text-blue-900 mb-2">📘 How to Use:</p>
@@ -519,39 +486,36 @@ aria-label="Toggle help information"
 </p>
 </div>
 )}
-
 <div className="grid grid-cols-2 gap-3 mb-4">
 <div className="col-span-2">
 <label htmlFor="obsBrix" className="text-[10px] font-bold text-gray-400 uppercase">
 Observed Brix (%)
 </label>
-<input 
+<input
 id="obsBrix"
-type="number" 
+type="number"
 value={obs}
 onChange={e=>setObs(e.target.value)}
 className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none border-2 border-transparent focus:border-amber-200"/>
 </div>
-
 <div>
 <label htmlFor="syrupTemp" className="text-[10px] font-bold text-gray-400 uppercase">
 Syrup Temp °F
 </label>
-<input 
+<input
 id="syrupTemp"
-type="number" 
+type="number"
 value={temp}
 onChange={e=>setTemp(e.target.value)}
 className="w-full p-3 bg-amber-50 rounded-xl text-lg font-bold outline-none border-2 border-transparent focus:border-amber-200"/>
 </div>
-
 <div>
 <label htmlFor="hydrometerCal" className="text-[10px] font-bold text-gray-400 uppercase">
 Hydrometer Cal
 </label>
-<select 
+<select
 id="hydrometerCal"
-value={cal} 
+value={cal}
 onChange={e=>setCal(e.target.value)}
 className="w-full p-3 bg-amber-50 rounded-xl text-sm font-bold h-[52px]">
 <option value="211">Hot (211°)</option>
@@ -559,7 +523,6 @@ className="w-full p-3 bg-amber-50 rounded-xl text-sm font-bold h-[52px]">
 </select>
 </div>
 </div>
-
 <div className="bg-orange-50 p-4 rounded-2xl text-center border border-orange-100">
 <span className="text-[10px] font-black text-orange-800 block uppercase">
 True Brix Result
@@ -571,7 +534,6 @@ True Brix Result
 </div>
 );
 }
-
 function SugarbushApp(){
 const [zip,setZip]=useState('');
 const [data,setData]=useState(null);
@@ -581,7 +543,6 @@ const [trivia,setTrivia]=useState('');
 const [lastZip,setLastZip]=useState('');
 const [mode,setMode]=useState('basic');
 const errorTimeoutRef = useRef(null);
-
 useEffect(()=>{
 setTrivia(triviaList[Math.floor(Math.random()*triviaList.length)]);
 const saved = localStorage.getItem('sugarbush_last_zip');
@@ -589,13 +550,11 @@ if (saved) {
 setLastZip(saved);
 }
 },[]);
-
 const showError = (msg) => {
 setError(msg);
 if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
 errorTimeoutRef.current = setTimeout(() => setError(''), 6000);
 };
-
 async function analyze(zipToUse = null){
 const targetZip = zipToUse || zip;
 if(!/^\d{5}$/.test(targetZip.trim())) {
@@ -604,38 +563,30 @@ return;
 }
 setLoading(true);
 setError('');
-
 try{
 const zRes=await fetch(`https://api.zippopotam.us/us/${targetZip}`);
 if (!zRes.ok) throw new Error('ZIP code not found');
 const zData=await zRes.json();
 const {latitude:lat,longitude:lon}=zData.places[0];
-
 const pRes=await fetch(`https://api.weather.gov/points/${lat},${lon}`);
 if (!pRes.ok) throw new Error('Weather data unavailable');
 const pData=await pRes.json();
-
 const gRes=await fetch(pData.properties.forecastGridData);
 if (!gRes.ok) throw new Error('Grid data unavailable');
 const gridData=await gRes.json();
 const elev=gridData.properties.elevation.value*3.28084;
-
 const fRes=await fetch(pData.properties.forecast);
 if (!fRes.ok) throw new Error('Forecast unavailable');
 const fData=await fRes.json();
-
 const now=new Date();
 const diffDays=Math.ceil((now-new Date(now.getFullYear(),0,1))/86400000);
-
 const omRes=await fetch(
 `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=surface_pressure&daily=temperature_2m_max,temperature_2m_min&past_days=${diffDays}&timezone=auto&temperature_unit=fahrenheit`
 );
 if (!omRes.ok) throw new Error('Pressure data unavailable');
 const omData=await omRes.json();
-
 const pressInHg=omData.current.surface_pressure*0.02953;
 const liveWaterBP=212+(pressInHg-29.92)*1.73;
-
 let totalGDD=0;
 omData.daily.time.forEach((_,i)=>{
 const h = omData.daily.temperature_2m_max[i];
@@ -645,20 +596,22 @@ const avg=(h+l)/2;
 totalGDD+=Math.max(avg-40,0);
 }
 });
-
-const periods = fData.properties.periods.slice(0, 14);
+// FIX: Always start pairing from a daytime period.
+// The NWS API can return a nighttime period first (e.g. "Tonight") which
+// causes high/low temps to be swapped, breaking the sap run logic.
+const allPeriods = fData.properties.periods;
+const firstDayIdx = allPeriods.findIndex(p => p.isDaytime);
+const periods = allPeriods.slice(firstDayIdx, firstDayIdx + 14);
 const forecast = [];
 for (let i = 0; i < periods.length - 1; i += 2) {
 const day = periods[i];
 const night = periods[i + 1];
 const high = day.temperature;
 const low = night.temperature;
-
 let sapStatus = '';
 let sapClass = '';
 let isRun = false;
 let isRisk = false;
-
 if (high >= 38 && high <= 50 && low < 32) {
 sapStatus = '⭐ Excellent';
 sapClass = 'bg-green-100 text-green-700';
@@ -680,7 +633,6 @@ sapStatus = '❄️ Too Cold';
 sapClass = 'bg-gray-100 text-gray-500';
 isRisk = true;
 }
-
 let warning = '';
 const forecastText = (day.shortForecast + ' ' + night.shortForecast).toLowerCase();
 if (forecastText.includes('storm') || forecastText.includes('severe') || forecastText.includes('thunder')) {
@@ -692,7 +644,6 @@ warning = '💨 Wind';
 } else if (forecastText.includes('snow')) {
 warning = '❄️ Snow';
 }
-
 forecast.push({
 name: day.name,
 high,
@@ -704,7 +655,6 @@ isRisk,
 warning
 });
 }
-
 setData({
 elev:Math.round(elev),
 press:pressInHg.toFixed(2),
@@ -713,30 +663,25 @@ syrupBP:(liveWaterBP+7.1).toFixed(1),
 gdd:Math.round(totalGDD),
 forecast
 });
-
 localStorage.setItem('sugarbush_last_zip', targetZip);
 setLastZip(targetZip);
 setZip(targetZip);
-
 }catch(e){
 console.error('Analysis error:', e);
 showError('Unable to fetch weather data. Please verify the ZIP code and try again.');
 }
 setLoading(false);
 }
-
 const handleKeyPress = (e) => {
 if (e.key === 'Enter' && !loading) {
 analyze();
 }
 };
-
 const loadLastZip = () => {
 if (lastZip) {
 analyze(lastZip);
 }
 };
-
 return(
 <div className="min-h-screen">
 <div className={`mx-auto p-6 pb-12 ${mode === 'advanced' ? 'max-w-7xl' : 'max-w-2xl'}`}>
@@ -770,11 +715,9 @@ mode === 'advanced'
 </button>
 </div>
 </header>
-
 <div className="bg-white p-5 rounded-3xl shadow-sm mb-6 border-l-8 border-amber-600 italic text-sm text-amber-900 max-w-3xl mx-auto">
 "{trivia}"
 </div>
-
 <div className="mb-8 max-w-2xl mx-auto">
 <div className="flex items-center justify-between mb-2 ml-1">
 <label htmlFor="zipInput" className="text-sm font-bold text-amber-900 uppercase">
@@ -790,10 +733,10 @@ className="text-xs font-bold text-amber-600 bg-amber-50 px-4 py-2 rounded-full h
 )}
 </div>
 <div className="flex gap-3">
-<input 
+<input
 id="zipInput"
-type="tel" 
-value={zip} 
+type="tel"
+value={zip}
 onChange={e=>setZip(e.target.value)}
 onKeyPress={handleKeyPress}
 placeholder="Enter 5-digit ZIP"
@@ -803,7 +746,7 @@ className={`flex-1 p-4 rounded-2xl border-2 shadow-inner text-lg font-bold focus
 aria-required="true"
 aria-describedby={error ? "error-message" : undefined}
 />
-<button 
+<button
 onClick={() => analyze()}
 disabled={loading}
 className="tap-active bg-amber-900 text-white px-10 py-4 rounded-2xl font-black shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-lg"
@@ -818,7 +761,7 @@ className="tap-active bg-amber-900 text-white px-10 py-4 rounded-2xl font-black 
 </button>
 </div>
 {error && (
-<div 
+<div
 id="error-message"
 role="alert"
 className="mt-3 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm font-semibold rounded-lg fade-in"
@@ -827,7 +770,6 @@ className="mt-3 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm fon
 </div>
 )}
 </div>
-
 {data && (
 <div className="fade-in">
 {mode === 'basic' ? (
@@ -858,7 +800,6 @@ className="mt-3 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm fon
 </div>
 ))}
 </div>
-
 <div className="grid grid-cols-2 gap-4">
 <div className="bg-white p-5 rounded-3xl border border-amber-100 text-center">
 <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Baro Pressure</label>
@@ -877,11 +818,9 @@ className="mt-3 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm fon
 <span className="text-3xl font-black">{data.syrupBP}°</span>
 </div>
 </div>
-
 <RunPredictor forecast={data.forecast} />
 <SummaryNarrative data={data} />
 <GradingAssistant gdd={data.gdd} />
-
 <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100">
 <div className="flex justify-between items-end mb-2">
 <label className="text-xs font-black text-amber-800 uppercase">
@@ -897,7 +836,6 @@ style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
 {data.gdd<75 ? "🌳 Buds Dormant - Sap Quality Prime!" : data.gdd<125 ? "🟡 Trees Waking - Monitor Bud Swell" : "🚨 Bud Swell Imminent - Season Ending!"}
 </p>
 </div>
-
 <BrixLab/>
 </div>
 ) : (
@@ -929,7 +867,6 @@ style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
 </div>
 ))}
 </div>
-
 <div className="space-y-4">
 <div className="grid grid-cols-2 gap-4">
 <div className="bg-white p-5 rounded-3xl border border-amber-100 text-center">
@@ -951,12 +888,10 @@ style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
 </div>
 </div>
 </div>
-
 <div className="grid lg:grid-cols-2 gap-6">
 <RunPredictor forecast={data.forecast} />
 <SummaryNarrative data={data} />
 </div>
-
 <div className="grid lg:grid-cols-2 gap-6">
 <GradingAssistant gdd={data.gdd} />
 <div className="bg-white p-5 rounded-3xl shadow-sm border border-amber-100">
@@ -975,9 +910,7 @@ style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
 </p>
 </div>
 </div>
-
 <AdvancedProductionCalc data={data} />
-
 <BrixLab/>
 </div>
 )}
@@ -987,9 +920,8 @@ style={{width:`${Math.min((data.gdd/150)*100,100)}%`}}></div>
 </div>
 );
 }
-
 const root=ReactDOM.createRoot(document.getElementById('root'));
 root.render(<SugarbushApp/>);
 </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9bae1ca6846be0b5',t:'MTc2NzkwMDY1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
